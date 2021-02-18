@@ -2,29 +2,27 @@ import gym
 import numpy as np
 import matplotlib.pyplot as plt
 
-from turorials.frozen_lake.coverage_env import FrozenLakeCoverage
+NB_EPISODES = 10000
+PRINT_EVERY = 1000
 
-NB_EPISODES = 100000
-PRINT_EVERY = 5000
-
-MAX_STEPS = 100
 ALPHA = 0.1
-DISCOUNT = 0.75
+DISCOUNT = 0.9
 EPSILON_START = 0.99
 MIN_EPSILON = 0.01
-EPSILON_DECAY = 1/NB_EPISODES
+EPSILON_DECAY = 1.0/NB_EPISODES
 
-# env = gym.make("FrozenLake-v0")
-# env = gym.make("FrozenLake-v0", is_slippery=False)
-env = FrozenLakeCoverage(slippery=False)
+env = gym.make("Taxi-v3")
+OBS_SPACE = env.observation_space.n
+ACT_SPACE = env.action_space.n
+print(OBS_SPACE)
+print(ACT_SPACE)
 
 
 def select_action(table, s, eps):
     if np.random.random() > eps:
         return np.argmax(table[s])
     else:
-        return np.random.randint(0, env.action_size)
-
+        return np.random.randint(0, ACT_SPACE)
 
 def update_q_value(table, s, a, r, s_n):
     max_next = np.max(table[s_n])
@@ -32,23 +30,22 @@ def update_q_value(table, s, a, r, s_n):
     table[s][a] = curr_value + ALPHA * (r + DISCOUNT * max_next - curr_value)
     return table
 
-
 def decay_epsilon(eps):
-    return max(MIN_EPSILON, eps-EPSILON_DECAY)
+    return max(MIN_EPSILON, eps - EPSILON_DECAY)
 
 
-q_table = np.zeros(env.observation_size + (env.action_size, ))
-print(q_table.shape)
+q_table = np.zeros((OBS_SPACE, ACT_SPACE))
 epsilon = EPSILON_START
 nbs_steps = []
-avg_steps = []
-avg_nb_success = []
-nb_successes = 0
+avg_nbs_steps = []
+total_rewards = []
+avg_total_rewards = []
+print(q_table.shape)
 
 for episode in range(NB_EPISODES):
-
     current_state = env.reset()
     nb_steps = 0
+    total_reward = 0
     done = False
 
     while not done:
@@ -56,38 +53,34 @@ for episode in range(NB_EPISODES):
         action = select_action(q_table, current_state, epsilon)
         new_state, reward, done, _ = env.step(action)
         nb_steps += 1
+        total_reward += reward
 
         q_table = update_q_value(
-            q_table, current_state, action,
+            q_table,
+            current_state, action,
             reward, new_state
         )
 
         current_state = new_state
 
-    if reward >= 1.0:
-        nbs_steps.append(nb_steps)
-        avg_steps.append(sum(nbs_steps) / len(nbs_steps))
-        nb_successes += 1
-    avg_nb_success.append(nb_successes/(episode + 1))
+    nbs_steps.append(nb_steps)
+    avg_nbs_steps.append(np.average(nbs_steps))
+    total_rewards.append(total_reward)
+    avg_total_rewards.append(np.average(total_rewards))
 
     epsilon = decay_epsilon(epsilon)
 
     if episode % PRINT_EVERY == 0:
         print()
         print(f"EPISODE {episode}")
-        print(f"nb successes: {nb_successes}")
-        print(f"max nb steps: {max(nbs_steps) if len(nbs_steps) != 0 else None}")
-        print(f"min nb steps: {min(nbs_steps) if len(nbs_steps) != 0 else None}")
-        print(f"epsilon: {epsilon}")
-        print(f"max visits: {env.max_visits}")
+        print(f"average reward {avg_nbs_steps[episode]}")
+        print(f"avg nb steps {avg_total_rewards[episode]}")
 
-env.close()
-
-plt.plot(range(len(nbs_steps)), nbs_steps)
-plt.plot(range(len(avg_steps)), avg_steps)
+plt.plot(range(NB_EPISODES), total_rewards)
+plt.plot(range(NB_EPISODES), avg_total_rewards)
 plt.show()
-
-plt.plot(range(NB_EPISODES), avg_nb_success)
+plt.plot(range(NB_EPISODES), nbs_steps)
+plt.plot(range(NB_EPISODES), avg_nbs_steps)
 plt.show()
 
 current_state = env.reset()
