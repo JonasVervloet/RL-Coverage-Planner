@@ -42,39 +42,48 @@ def generate_fractal_noise_2d(shape, res, octaves=1, persistence=0.5):
     return noise
 
 
-# fig, axs = plt.subplots(2, 2)
-#
-# image = generate_perlin_noise_2d(SHAPE, (1, 1))
-# axs[0][0].imshow(image, cmap='gray')
-#
-# image = generate_perlin_noise_2d(SHAPE, (2, 2))
-# axs[0][1].imshow(image, cmap='gray')
-#
-# image = generate_perlin_noise_2d(SHAPE, (8, 8))
-# axs[1][0].imshow(image, cmap='gray')
-#
-# image = generate_perlin_noise_2d(SHAPE, (16, 16))
-# axs[1][1].imshow(image, cmap='gray')
-#
+# image = generate_perlin_noise_2d(SHAPE, (4, 4))
+# plt.imshow(image, cmap='gray')
 # plt.show()
 #
-#
-# fig, axs = plt.subplots(2, 2)
-#
-# image = generate_fractal_noise_2d((256, 256), (2, 2), octaves=3, persistence=0.25)
-# axs[0][0].imshow(image, cmap='gray')
-# print(np.max(image))
-#
-# image = generate_fractal_noise_2d((256, 256), (4, 4), octaves=3, persistence=0.25)
-# axs[0][1].imshow(image, cmap='gray')
-# print(np.max(image))
-#
-# image = generate_fractal_noise_2d((256, 256), (8, 8), octaves=3, persistence=0.25)
-# axs[1][0].imshow(image, cmap='gray')
-# print(np.max(image))
-#
-# image = generate_fractal_noise_2d((256, 256), (16, 16), octaves=3, persistence=0.25)
-# axs[1][1].imshow(image, cmap='gray')
-# print(np.max(image))
-#
+# image[image > 0.5] = 1.0
+# image[image <= 0.5] = 0.0
+# plt.imshow(image, cmap='gray')
 # plt.show()
+
+fig, axs = plt.subplots(2, 2)
+
+image = generate_perlin_noise_2d(SHAPE, (1, 1))
+axs[0][0].imshow(image, cmap='gray')
+
+image = generate_perlin_noise_2d(SHAPE, (2, 2))
+axs[0][1].imshow(image, cmap='gray')
+
+image = generate_perlin_noise_2d(SHAPE, (8, 8))
+axs[1][0].imshow(image, cmap='gray')
+
+image = generate_perlin_noise_2d(SHAPE, (16, 16))
+axs[1][1].imshow(image, cmap='gray')
+
+plt.show()
+
+
+fig, axs = plt.subplots(2, 2)
+
+image = generate_fractal_noise_2d((256, 256), (2, 2), octaves=3, persistence=0.25)
+axs[0][0].imshow(image, cmap='gray')
+print(np.max(image))
+
+image = generate_fractal_noise_2d((256, 256), (4, 4), octaves=3, persistence=0.25)
+axs[0][1].imshow(image, cmap='gray')
+print(np.max(image))
+
+image = generate_fractal_noise_2d((256, 256), (8, 8), octaves=3, persistence=0.25)
+axs[1][0].imshow(image, cmap='gray')
+print(np.max(image))
+
+image = generate_fractal_noise_2d((256, 256), (16, 16), octaves=3, persistence=0.25)
+axs[1][1].imshow(image, cmap='gray')
+print(np.max(image))
+
+plt.show()
