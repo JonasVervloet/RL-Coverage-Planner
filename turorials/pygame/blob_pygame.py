@@ -1,6 +1,10 @@
 import pygame
 import numpy as np
 
+from turorials.pygame.environment import Environment
+
+FPS = 2
+
 NB_TILES = 4
 TILE_WIDTH = 100
 TILE_BORDER = 3
@@ -17,21 +21,20 @@ CURRENT_COLOR = "white"
 OBSTACLE_COLOR = "coffee_brown"
 VIEW_COLOR = "magenta"
 
-visited = np.array([
-    [1, 1, 1, 0],
-    [0, 0, 1, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0]
-])
-
-obstacles = np.array([
+OBSTACLES = np.array([
     [0, 0, 0, 0],
     [0, 1, 0, 1],
     [0, 0, 0, 1],
     [1, 0, 0, 0]
 ])
 
+START_POS = [
+    (0, 0), (0, 1), (0, 2)
+]
+
 current_pos = (1, 2)
+
+env = Environment(OBSTACLES, START_POS)
 
 
 COLORS = {
@@ -55,6 +58,7 @@ def draw_tiles(surface, current_pos, visited_tiles, obstacles):
     offset = EXTRA_SPACING / 2
     for i in range(NB_TILES):
         x = offset + i * (TILE_WIDTH + TILE_BORDER)
+
         for j in range(NB_TILES):
             y = offset + j * (TILE_WIDTH + TILE_BORDER)
 
@@ -82,22 +86,44 @@ def draw_fov(surface, current_pos, fov):
     pygame.draw.rect(surface, COLORS[BORDER_COLOR], border_square)
 
 
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
+def draw_state(surface, state):
     offset = EXTRA_SPACING / 2
     width = (TILE_WIDTH + TILE_BORDER) * NB_TILES + TILE_BORDER
     height = (TILE_WIDTH + TILE_BORDER) * NB_TILES + TILE_BORDER
     border_square = pygame.Rect(offset, offset, width, height)
     pygame.draw.rect(screen, COLORS[BORDER_COLOR], border_square)
 
-    # draw_fov(screen, current_pos, FIELD_OF_VIEW)
-    draw_tiles(screen, current_pos, visited, obstacles)
+    current_pos, visited_tiles, obstacles = state
+    draw_tiles(surface, current_pos, visited_tiles, obstacles)
+
+
+
+running = True
+done = False
+
+state = env.reset()
+
+while running:
+    enter_pressed = False
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+                enter_pressed = True
+
+    if not done:
+        action = np.random.randint(4)
+        state, _, done = env.step(action)
+    else:
+        print("waiting for enter")
+        if enter_pressed:
+            state = env.reset()
+            done = False
+
+    draw_state(screen, state)
 
     pygame.display.update()
-    clock.tick(120)
+    clock.tick(FPS)
 
 pygame.quit()
