@@ -1,4 +1,8 @@
 import numpy as np
+import random
+import matplotlib.pyplot as plt
+
+from turorials.perlin_noise.obstacle_generation import flood_grid
 
 OBSTACLE_PUNISHMENT = -1
 DISCOVER_REWARD = 1
@@ -10,7 +14,7 @@ class Environment:
         self.obstacles = obstacles
         self.start_positions = start_positions
         self.visited_tiles = np.zeros_like(self.obstacles)
-        self.current_pos = (0, 0)
+        self.current_pos = random.sample(self.start_positions, 1)[0]
 
     def get_state(self):
         return self.current_pos, self.visited_tiles, self.obstacles
@@ -52,3 +56,29 @@ class Environment:
             self.current_pos = (self.current_pos[0], min(self.obstacles.shape[1] - 1, self.current_pos[1] + 1))
 
         return self.get_state(), self.get_reward(), self.is_done()
+
+
+if __name__ == "__main__":
+    save_path = "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/"
+    name = "test_grid.npy"
+    obstacle_grid = np.load(save_path + name)
+
+    regions = flood_grid(obstacle_grid)
+
+    fig, axs = plt.subplots(1, 2)
+
+    axs[0].imshow(obstacle_grid, cmap="gray")
+
+    masked_grid = np.copy(obstacle_grid)
+    for region in regions:
+        region_value = region[0]
+        middle_tiles = region[2]
+
+        middle_color = 0.25 if region_value else 0.75
+        for tile in middle_tiles:
+            masked_grid[tile] = middle_color
+
+    axs[1].imshow(masked_grid, cmap="gray")
+
+    plt.show()
+

@@ -7,8 +7,6 @@ from turorials.perlin_noise.open_simplex import generate_noise_map
 DIM = (16, 16)
 # DIM = (32, 32)
 
-RES = (5, 5)
-
 # FILL_RATIO = 0.30
 FILL_RATIO = 0.35
 # FILL_RATIO = 0.40
@@ -70,7 +68,6 @@ def flood_grid(grid):
                 continue
 
             region = flood_tile(grid, visited_tiles, (i, j))
-            print(region)
             regions.append(region)
 
     return regions
@@ -129,9 +126,6 @@ def grow_queue(grid, visited_tiles, queue, tile, tile_value):
                 border_tile = True
 
     return border_tile
-
-
-
 
 
 if __name__ == "__main__":
