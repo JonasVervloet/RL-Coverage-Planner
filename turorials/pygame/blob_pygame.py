@@ -16,7 +16,7 @@ DIMENSION = NB_TILES * (TILE_WIDTH + TILE_BORDER) + TILE_BORDER + EXTRA_SPACING
 
 BORDER_COLOR = "tan"
 TILE_COLOR = "moon_glow"
-VISITED_COLOR = "forest_green"
+VISITED_COLOR = ""
 CURRENT_COLOR = "white"
 OBSTACLE_COLOR = "coffee_brown"
 VIEW_COLOR = "magenta"
