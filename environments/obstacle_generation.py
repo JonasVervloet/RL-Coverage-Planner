@@ -20,7 +20,7 @@ class ObstacleMapGenerator:
         self.boundary_grid = self.generate_boundary_map()
 
     def set_frequency(self, n_freq):
-        self.noise_generator.res(n_freq)
+        self.noise_generator.res = n_freq
 
     def generate_boundary_map(self):
         grid = np.zeros(self.dim)
