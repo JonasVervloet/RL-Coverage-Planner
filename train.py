@@ -5,6 +5,8 @@ from environments.env_generation import EnvironmentGenerator
 from environments.env_representation import EnvironmentRepresentation
 from environments.environment import Environment
 
+from networks.simple_q_network import SimpleDeepQNetworkGenerator
+
 SHORT_OPTIONS = ""
 LONG_OPTIONS = [
     "heightRequired",
@@ -17,8 +19,13 @@ LONG_OPTIONS = [
     "obstaclePunish=",
     "discoverReward=",
     "coverageReward=",
-    "maxStepMultiplier="
+    "maxStepMultiplier=",
+    "networkGen="
 ]
+
+GENERATORS = {
+    "simpleQ": SimpleDeepQNetworkGenerator
+}
 
 def main(argv):
     try:
@@ -39,6 +46,8 @@ def main(argv):
     discover_reward = 1.0
     coverage_reward = 50.0
     max_step_multiplier = 2
+
+    net_gen_class = SimpleDeepQNetworkGenerator
 
     for option, argument in options:
         if option == "--heightRequired":
@@ -79,6 +88,13 @@ def main(argv):
         if option == "--maxStepMultiplier":
             max_step_multiplier = int(argument)
 
+        if option == "--networkGen":
+            try:
+                net_gen_class = GENERATORS[argument]
+            except KeyError:
+                raise Exception("TRAIN.py: network generator not defined...")
+
+
     env_generator = EnvironmentGenerator(height_required)
     env_generator.set_dimension(dimension)
     env_generator.set_height_frequency(height_frequency)
@@ -94,6 +110,9 @@ def main(argv):
     env.DISCOVER_REWARD = discover_reward
     env.COVERAGE_REWARD = coverage_reward
     env.MAX_STEP_MULTIPLIER = max_step_multiplier
+
+    network_generator = net_gen_class(dimension, env.get_input_depth(), env.get_nb_actions())
+    print(network_generator.generate_network())
 
     fig, axs = plt.subplots(2, 2)
 
