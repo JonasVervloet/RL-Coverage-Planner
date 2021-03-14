@@ -1,5 +1,7 @@
 import sys, getopt
-import matplotlib.pyplot as plt
+import torch.optim as optim
+import json
+import pprint
 
 from environments.env_generation import EnvironmentGenerator
 from environments.env_representation import EnvironmentRepresentation
@@ -7,8 +9,12 @@ from environments.environment import Environment
 
 from networks.simple_q_network import SimpleDeepQNetworkGenerator
 
+from deep_rl.deep_q_agent import DeepQAgent
+from deep_rl.trainer import DeepRLTrainer
+
 SHORT_OPTIONS = ""
 LONG_OPTIONS = [
+    "loadArguments=",
     "heightRequired",
     "dim=",
     "hFreq=",
@@ -20,11 +26,25 @@ LONG_OPTIONS = [
     "discoverReward=",
     "coverageReward=",
     "maxStepMultiplier=",
-    "networkGen="
+    "networkGen=",
+    "rlAgent=",
+    "optim=",
+    "nbEpisodes=",
+    "printEvery=",
+    "saveEvery=",
+    "savePath="
 ]
 
 GENERATORS = {
     "simpleQ": SimpleDeepQNetworkGenerator
+}
+
+AGENTS = {
+    "deepQ": DeepQAgent
+}
+
+OPTIMIZERS = {
+    "rmsProp": optim.RMSprop
 }
 
 def main(argv):
@@ -33,98 +53,139 @@ def main(argv):
     except getopt.GetoptError:
         print("badly formatted command line arguments")
 
-    height_required = False
-    dimension = (16, 16)
-    height_frequency = (2, 2)
-    obstacle_frequency = (2, 2)
-    fill_ratio = 0.14
-
-    env_repr = None
-
-    move_punishment = 0.05
-    obstacle_punishment = 0.5
-    discover_reward = 1.0
-    coverage_reward = 50.0
-    max_step_multiplier = 2
-
-    net_gen_class = SimpleDeepQNetworkGenerator
+    arguments = {
+        "heightRequired": False,
+        "dim": (16, 16),
+        "hFreq": (2, 2),
+        "oFreq": (2, 2),
+        "fillRatio": 0.14,
+        "loadEnv": None,
+        "movePunish": 0.05,
+        "obstaclePunish": 0.5,
+        "discoverReward": 1.0,
+        "coverageReward": 50.0,
+        "maxStepMultiplier": 2,
+        "networkGen": "simpleQ",
+        "rlAgent": "deepQ",
+        "optim": "rmsProp",
+        "nbEpisodes": 2000,
+        "printEvery": 50,
+        "saveEvery": 250,
+        "savePath": "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/"
+    }
 
     for option, argument in options:
+        if option == "--loadArguments":
+            with open(f"{argument}") as input_file:
+                input_data = json.load(input_file)
+                arguments.update(input_data)
+
+                pprint.pprint(arguments)
+
         if option == "--heightRequired":
-            height_required = True
+            arguments["heightRequired"] = True
 
         if option == "--dim":
-            arg_split = map(int, argument.split(","))
-            dimension = tuple(arg_split)
+            arguments["dim"] = tuple(tuple(map(int, argument.split(","))))
+
 
         if option == "--hFreq":
-            arg_split = map(int, argument.split(","))
-            height_frequency = tuple(arg_split)
+            arguments["hFreq"] = tuple(map(int, argument.split(",")))
 
         if option == "--oFreq":
-            arg_split = map(int, argument.split(","))
-            obstacle_frequency = tuple(arg_split)
+            arguments["oFreq"] = tuple(map(int, argument.split(",")))
 
         if option == "--fillRatio":
-            fill_ratio = float(argument)
+            arguments["fillRatio"] = float(argument)
 
         if option == "--loadEnv":
-            arg_split = argument.split(",")
-            env_repr = EnvironmentRepresentation()
-            env_repr.load(arg_split[0], arg_split[1])
+            arguments["loadEnv"] = tuple(argument.split(","))
 
         if option == "--movePunish":
-            move_punishment = float(argument)
+            arguments["movePunish"] = float(argument)
 
         if option == "--obstaclePunish":
-            obstacle_punishment = float(argument)
+            arguments["obstaclePunish"] = float(argument)
 
         if option == "--discoverReward":
-            discover_reward = float(argument)
+            arguments["discoverReward"] = float(argument)
 
         if option == "--coverageReward":
-            coverage_reward = float(argument)
+            arguments["coverageReward"] = float(argument)
 
         if option == "--maxStepMultiplier":
-            max_step_multiplier = int(argument)
+            arguments["maxStepMultiplier"] = int(argument)
 
         if option == "--networkGen":
-            try:
-                net_gen_class = GENERATORS[argument]
-            except KeyError:
-                raise Exception("TRAIN.py: network generator not defined...")
+            if argument in GENERATORS:
+                arguments["networkGen"] = argument
+            else:
+                raise Exception("TRAIN.py: given network generator is not defined...")
 
+        if option == "--optim":
+            if argument in OPTIMIZERS:
+                arguments["optim"] = argument
+            else:
+                raise Exception("TRAIN.py: given optimizer is not defined...")
 
-    env_generator = EnvironmentGenerator(height_required)
-    env_generator.set_dimension(dimension)
-    env_generator.set_height_frequency(height_frequency)
-    env_generator.set_obstacle_frequency(obstacle_frequency)
-    env_generator.set_fill_ration(fill_ratio)
+        if option == "--rlAgent":
+            if argument in AGENTS:
+                arguments["rlAgent"] = argument
+            else:
+                raise Exception("TRAIN.py: given agent is not defined...")
+
+        if option == "--nbEpisodes":
+            arguments["nbEpisodes"] = int(argument)
+
+        if option == "--printEvery":
+            arguments["printEvery"] = int(argument)
+
+        if option == "--saveEvery":
+            arguments["saveEvery"] = int(argument)
+
+        if option == "--savePath":
+            arguments["savePath"] = argument
+
+    with open(f"{arguments['savePath']}arguments.txt", 'w') as output_file:
+        json.dump(arguments, output_file)
+
+    env_generator = EnvironmentGenerator(arguments["heightRequired"])
+    env_generator.set_dimension(arguments["dim"])
+    env_generator.set_height_frequency(arguments["hFreq"])
+    env_generator.set_obstacle_frequency(arguments["oFreq"])
+    env_generator.set_fill_ration(arguments["fillRatio"])
 
     env = Environment(env_generator)
-    if env_repr is not None:
+    if arguments["loadEnv"] is not None:
+        env_repr = EnvironmentRepresentation()
+        env_repr.load(arguments["loadEnv"][0], arguments["loadEnv"][1])
+        arguments["dim"] = env_repr.get_dimension()
         env.set_environment_representation(env_repr)
 
-    env.MOVE_PUNISHMENT = move_punishment
-    env.OBSTACLE_PUNISHMENT = obstacle_punishment
-    env.DISCOVER_REWARD = discover_reward
-    env.COVERAGE_REWARD = coverage_reward
-    env.MAX_STEP_MULTIPLIER = max_step_multiplier
+    env.MOVE_PUNISHMENT = arguments["movePunish"]
+    env.OBSTACLE_PUNISHMENT = arguments["obstaclePunish"]
+    env.DISCOVER_REWARD = arguments["discoverReward"]
+    env.COVERAGE_REWARD = arguments["coverageReward"]
+    env.MAX_STEP_MULTIPLIER = arguments["maxStepMultiplier"]
 
-    network_generator = net_gen_class(dimension, env.get_input_depth(), env.get_nb_actions())
-    print(network_generator.generate_network())
+    network_generator = GENERATORS[arguments["networkGen"]](
+        arguments["dim"],
+        env.get_input_depth(),
+        env.get_nb_actions()
+    )
+    optim_class = OPTIMIZERS[arguments["optim"]]
+    agent = AGENTS[arguments["rlAgent"]](
+        network_generator,
+        optim_class,
+        env.get_nb_actions()
+    )
 
-    fig, axs = plt.subplots(2, 2)
+    DeepRLTrainer.NB_EPISODES = arguments["nbEpisodes"]
+    DeepRLTrainer.INFO_EVERY = arguments["printEvery"]
+    DeepRLTrainer.SAVE_EVERY = arguments["saveEvery"]
 
-    env_repr = env_generator.generate_environment()
-    axs[0][0].imshow(env_repr.terrain_map)
-    axs[0][1].imshow(env_repr.obstacle_map)
-
-    env_repr = env_generator.generate_environment()
-    axs[1][0].imshow(env_repr.terrain_map)
-    axs[1][1].imshow(env_repr.obstacle_map)
-
-    plt.show()
+    trainer = DeepRLTrainer(env, agent, arguments["savePath"])
+    trainer.train()
 
 
 if __name__ == "__main__":

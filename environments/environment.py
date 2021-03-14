@@ -18,6 +18,7 @@ class Environment:
 
         self.env_info = None
         self.current_pos = None
+        self.visited_tiles = None
         self.nb_steps = 0
         self.done = True
 
@@ -26,6 +27,15 @@ class Environment:
     def set_environment_representation(self, representation):
         self.env_info = representation
         self.single_env = True
+
+    def get_nb_visited_tiles(self):
+        return np.sum(self.visited_tiles)
+
+    def get_input_depth(self):
+        return 3
+
+    def get_nb_actions(self):
+        return 4
 
     def reset(self):
         self.done = False
@@ -47,13 +57,15 @@ class Environment:
 
             return np.stack([current_pos_grid, self.visited_tiles, self.env_info.obstacle_map])
 
-    def has_complete_coverage(self, n_pos):
-        check = np.ones_like(self.env_info.obstacle_map)
-        added_map = self.visited_tiles + self.env_info.obstacle_map
-        added_map[n_pos] = 1
+    def complete_coverage(self):
+        return self.env_info.nb_free_tiles == np.sum(self.visited_tiles)
 
-        if np.sum(added_map - check) == 0:
-            return True
+    def has_complete_coverage(self, n_pos):
+        check_map = np.copy(self.visited_tiles)
+        if self.env_info.obstacle_map[n_pos] == 0:
+            check_map[n_pos] == 1
+
+        return self.env_info.nb_free_tiles == np.sum(check_map)
 
     def get_reward(self, n_pos):
         reward = -self.MOVE_PUNISHMENT
@@ -77,7 +89,7 @@ class Environment:
             self.done = True
             return True
 
-        if self.nb_steps > self.MAX_STEPS_MULTIPLIER * self.env_info.nb_free_tiles:
+        if self.nb_steps > self.MAX_STEP_MULTIPLIER * self.env_info.nb_free_tiles:
             self.done = True
             return True
 

@@ -11,6 +11,12 @@ class EnvironmentRepresentation:
         self.start_positions = None
         self.nb_free_tiles = 0
 
+    def get_dimension(self):
+        if self.obstacle_map is None:
+            raise Exception("Environment Representation: representation not initialized")
+        else:
+            return (self.obstacle_map.shape[0], self.obstacle_map.shape[1])
+
     def save(self, path, name):
         json_to_save = {}
 
