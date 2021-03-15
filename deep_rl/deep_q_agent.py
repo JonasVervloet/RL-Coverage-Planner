@@ -10,7 +10,7 @@ from deep_rl.trainer import Transition as Transition
 class DeepQAgent:
 
     QUEUE_LENGTH = 5000
-    GAMMA = 1.0
+    GAMMA = 0.9
     EPSILON_START = 0.9
     EPSILON_END = 0.05
     EPSILON_DECAY = 2000
@@ -29,10 +29,10 @@ class DeepQAgent:
         self.optimizer = optim_class(self.policy_net.parameters())
         self.batch_size = DeepQAgent.BATCH_SIZE
 
+        self.step_counter = 1
+
         self.target_net.load_state_dict(self.policy_net.state_dict())
         self.target_net.eval()
-
-        self.step_counter = 0
 
     def select_action(self, state_tensor):
         if random.random() > self.epsilon:

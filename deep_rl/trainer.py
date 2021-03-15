@@ -16,6 +16,8 @@ class DeepRLTrainer:
         self.env = environment
         self.agent = agent
 
+        self.save_path = save_path
+
         self.total_rewards = []
         self.avg_rewards = []
 
@@ -28,17 +30,15 @@ class DeepRLTrainer:
         self.cc_counter = 0
         self.nb_complete_cov = []
 
-        self.save_path = save_path
-
     def train(self):
-        for episode_nb in range(DeepRLTrainer.NB_EPISODES + 1):
+        for i in range(DeepRLTrainer.NB_EPISODES):
 
             current_state = torch.tensor(self.env.reset(), dtype=torch.float)
             done = False
             total_reward = 0
             nb_steps = 0
 
-            self.agent.update_epsilon(episode_nb)
+            self.agent.update_epsilon(i)
 
             while not done:
                 action = self.agent.select_action(current_state)
@@ -67,7 +67,7 @@ class DeepRLTrainer:
             self.tiles_visited.append(self.env.get_nb_visited_tiles())
             self.nb_complete_cov.append(self.cc_counter)
 
-            if episode_nb < DeepRLTrainer.SAVE_EVERY:
+            if i < DeepRLTrainer.SAVE_EVERY:
                 self.avg_rewards.append(np.average(self.total_rewards))
                 self.avg_tiles_visited.append(np.average(self.tiles_visited))
                 self.avg_nb_steps.append(np.average(self.nb_steps))
@@ -76,16 +76,17 @@ class DeepRLTrainer:
                 self.avg_tiles_visited.append(np.average(self.tiles_visited[-DeepRLTrainer.SAVE_EVERY:]))
                 self.avg_nb_steps.append(np.average(self.nb_steps[-DeepRLTrainer.SAVE_EVERY:]))
 
+            episode_nb = i + 1
             if episode_nb % DeepRLTrainer.INFO_EVERY == 0:
                 print(f"Episode {episode_nb}")
                 print(f"total reward: {total_reward}")
                 print(f"nb steps: {nb_steps}")
-                print(f"tiles visited: {self.tiles_visited[episode_nb]}")
+                print(f"tiles visited: {self.tiles_visited[i]}")
                 print(f"epsilon: {self.agent.epsilon}")
                 print()
 
             if episode_nb % DeepRLTrainer.SAVE_EVERY == 0:
-                x = range(episode_nb + 1)
+                x = range(episode_nb)
 
                 plt.clf()
                 plt.plot(x, self.total_rewards, x, self.avg_rewards)

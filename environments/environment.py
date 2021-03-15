@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 
 from environments.env_representation import EnvironmentRepresentation
 
@@ -61,22 +62,25 @@ class Environment:
         return self.env_info.nb_free_tiles == np.sum(self.visited_tiles)
 
     def has_complete_coverage(self, n_pos):
-        check_map = np.copy(self.visited_tiles)
-        if self.env_info.obstacle_map[n_pos] == 0:
-            check_map[n_pos] == 1
+        if self.env_info.obstacle_map[n_pos] == 1:
+            return False
 
-        return self.env_info.nb_free_tiles == np.sum(check_map)
+        nb_visited_tiles = np.sum(self.visited_tiles)
+        if self.visited_tiles[n_pos] == 0:
+            nb_visited_tiles += 1
+
+        return nb_visited_tiles == self.env_info.nb_free_tiles
 
     def get_reward(self, n_pos):
         reward = -self.MOVE_PUNISHMENT
         if self.env_info.obstacle_map[n_pos] == 1:
             reward -= self.OBSTACLE_PUNISHMENT
         else:
-            if self.env_info.obstacle_map[n_pos] == 0 and self.visited_tiles[n_pos] == 0:
+            if self.visited_tiles[n_pos] == 0:
                 reward += self.DISCOVER_REWARD
 
-                if self.has_complete_coverage(n_pos):
-                    reward += self.COVERAGE_REWARD
+            if self.has_complete_coverage(n_pos):
+                reward += self.COVERAGE_REWARD
 
         return reward
 
@@ -127,7 +131,7 @@ if __name__ == "__main__":
     save_path = "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/"
 
     env_representation = EnvironmentRepresentation()
-    env_representation.load(save_path, "test_representation")
+    env_representation.load(save_path, "env_8x")
 
     env = Environment()
     env.set_environment_representation(env_representation)
@@ -137,11 +141,24 @@ if __name__ == "__main__":
     print(env.current_pos)
     print(np.sum(env.visited_tiles))
     print(env.nb_steps)
+    print()
 
-    state, reward, done = env.step(0)
-    print(state.shape)
-    print(reward)
-    print(done)
-    print(env.current_pos)
-    print(env.nb_steps)
-    print(np.sum(env.visited_tiles))
+    plt.imshow(np.moveaxis(state, 0, -1))
+    plt.show()
+
+    done = False
+    while not done:
+        print("Enter action: ")
+        action = int(input())
+        print()
+        state, reward, done = env.step(action)
+        print(state.shape)
+        print(reward)
+        print(done)
+        print(env.current_pos)
+        print(env.nb_steps)
+        print(np.sum(env.visited_tiles))
+        print()
+
+        plt.imshow(np.moveaxis(state, 0, -1))
+        plt.show()

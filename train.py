@@ -28,6 +28,7 @@ LONG_OPTIONS = [
     "maxStepMultiplier=",
     "networkGen=",
     "rlAgent=",
+    "epsilonDecay=",
     "optim=",
     "nbEpisodes=",
     "printEvery=",
@@ -68,6 +69,7 @@ def main(argv):
         "networkGen": "simpleQ",
         "rlAgent": "deepQ",
         "optim": "rmsProp",
+        "epsilonDecay": 2000,
         "nbEpisodes": 2000,
         "printEvery": 50,
         "saveEvery": 250,
@@ -134,6 +136,9 @@ def main(argv):
             else:
                 raise Exception("TRAIN.py: given agent is not defined...")
 
+        if option == "--epsilonDecay":
+            arguments["epsilonDecay"] = int(argument)
+
         if option == "--nbEpisodes":
             arguments["nbEpisodes"] = int(argument)
 
@@ -179,6 +184,7 @@ def main(argv):
         optim_class,
         env.get_nb_actions()
     )
+    agent.EPSILON_DECAY = arguments["epsilonDecay"]
 
     DeepRLTrainer.NB_EPISODES = arguments["nbEpisodes"]
     DeepRLTrainer.INFO_EVERY = arguments["printEvery"]
