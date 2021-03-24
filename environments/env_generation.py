@@ -6,6 +6,9 @@ from environments.env_representation import EnvironmentRepresentation
 
 
 class EnvironmentGenerator:
+
+    MIN_AREA = 15
+
     def __init__(self, requires_height_map=False):
         self.obstacle_generator = ObstacleMapGenerator()
 
@@ -28,10 +31,14 @@ class EnvironmentGenerator:
     def generate_environment(self):
         env_representation = EnvironmentRepresentation()
 
-        obstacle_map, nb_tiles, start_positions  = self.obstacle_generator.generate_obstacle_map()
-        env_representation.obstacle_map = obstacle_map
-        env_representation.nb_free_tiles = nb_tiles
-        env_representation.start_positions = start_positions
+        area = 0
+        while area < 15:
+            obstacle_map, nb_tiles, start_positions = self.obstacle_generator.generate_obstacle_map()
+            env_representation.obstacle_map = obstacle_map
+            env_representation.nb_free_tiles = nb_tiles
+            env_representation.start_positions = start_positions
+
+            area = nb_tiles
 
         if self.requires_height_map:
             env_representation.terrain_map = self.height_generator.generate_noise_map()

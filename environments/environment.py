@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 from environments.env_representation import EnvironmentRepresentation
 
+
 class Environment:
 
     MOVE_PUNISHMENT = 0.05

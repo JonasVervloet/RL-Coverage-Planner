@@ -121,6 +121,8 @@ class ObstacleMapGenerator:
             for j in range(-1, 2):
                 if i == 0 and j == 0:
                     continue
+                if (i == -1 or i == 1) and not j == 0:
+                    continue
 
                 n_tile_x = tile[0] + i
                 n_tile_y = tile[1] + j
@@ -147,10 +149,10 @@ class ObstacleMapGenerator:
 
     @staticmethod
     def change_region_value(map, region, n_value):
-        for border_tile in region[1]:
+        for border_tile in region[2]:
             map[border_tile] = n_value
 
-        for middle_tile in region[2]:
+        for middle_tile in region[3]:
             map[middle_tile] = n_value
 
 
@@ -159,11 +161,26 @@ if __name__ == "__main__":
     obstacle_generator.set_dimension((32, 32))
     obstacle_generator.fill_ratio = 0.24
 
-    for i in range(20):
-        map, nb_tiles, _ = obstacle_generator.generate_obstacle_map()
+    # for i in range(20):
+    #     map, nb_tiles, _ = obstacle_generator.generate_obstacle_map()
+    #
+    #     print(f"nb tiles: {nb_tiles}")
+    #     plt.clf()
+    #     plt.imshow(map)
+    #     plt.show()
 
-        print(f"nb tiles: {nb_tiles}")
-        plt.clf()
-        plt.imshow(map)
-        plt.show()
+    obstacle_generator.set_dimension((8, 8))
+    obstacle_generator.fill_ratio = 0.18
+    obstacle_generator.set_frequency((2, 2))
+
+    count = 0
+    for i in range(20000):
+        if i % 1000 == 0:
+            print(i)
+
+        _, nb_tiles, _ = obstacle_generator.generate_obstacle_map()
+        if nb_tiles < 15:
+            count += 1
+            print(f"Small map: {nb_tiles} tiles")
+            print(f"total small map count: {count}")
 
