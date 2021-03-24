@@ -12,6 +12,8 @@ class DeepRLTrainer:
     SAVE_EVERY = 500
     INFO_EVERY = 50
 
+    SOFT_MAX = False
+
     def __init__(self, environment, agent, save_path):
         self.env = environment
         self.agent = agent
@@ -41,7 +43,7 @@ class DeepRLTrainer:
             self.agent.update_epsilon(i)
 
             while not done:
-                action = self.agent.select_action(current_state)
+                action = self.agent.select_action(current_state, soft_max=DeepRLTrainer.SOFT_MAX)
                 n_state, reward, done = self.env.step(action)
 
                 total_reward += reward

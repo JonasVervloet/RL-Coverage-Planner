@@ -8,7 +8,7 @@ import math
 from deep_rl.trainer import Transition as Transition
 
 
-class DeepQAgent:
+class DoubleDeepQAgent:
 
     QUEUE_LENGTH = 5000
     GAMMA = 0.9
@@ -25,10 +25,10 @@ class DeepQAgent:
 
         self.nb_actions = nb_actions
 
-        self.replay_buffer = deque(maxlen=DeepQAgent.QUEUE_LENGTH)
-        self.epsilon = DeepQAgent.EPSILON_START
+        self.replay_buffer = deque(maxlen=DoubleDeepQAgent.QUEUE_LENGTH)
+        self.epsilon = DoubleDeepQAgent.EPSILON_START
         self.optimizer = optim_class(self.policy_net.parameters())
-        self.batch_size = DeepQAgent.BATCH_SIZE
+        self.batch_size = DoubleDeepQAgent.BATCH_SIZE
 
         self.step_counter = 1
 
@@ -51,8 +51,8 @@ class DeepQAgent:
             return distribution.sample().item()
 
     def update_epsilon(self, episode_nb):
-        diff = DeepQAgent.EPSILON_START - DeepQAgent.EPSILON_END
-        self.epsilon = DeepQAgent.EPSILON_END + diff * math.exp(-1 * episode_nb / DeepQAgent.EPSILON_DECAY)
+        diff = DoubleDeepQAgent.EPSILON_START - DoubleDeepQAgent.EPSILON_END
+        self.epsilon = DoubleDeepQAgent.EPSILON_END + diff * math.exp(-1 * episode_nb / DoubleDeepQAgent.EPSILON_DECAY)
 
     def save(self, path, episode_nb):
         torch.save(self.policy_net.state_dict(), path + f"deep_q_agent_{episode_nb}.pt")
@@ -82,8 +82,11 @@ class DeepQAgent:
 
         state_action_values = self.policy_net(state_batch).gather(1, action_batch)
         next_state_values = torch.zeros(self.batch_size)
-        next_state_values[non_final_mask] = torch.max(self.target_net(next_state_batch), dim=1)[0][non_final_mask]
-        expected_values = (next_state_values * DeepQAgent.GAMMA) + reward_batch
+        next_state_actions = torch.argmax(self.policy_net(next_state_batch), dim=1)
+        next_state_values[non_final_mask] = self.target_net(next_state_batch)[
+            torch.arange(self.batch_size), next_state_actions
+        ][non_final_mask]
+        expected_values = (next_state_values * DoubleDeepQAgent.GAMMA) + reward_batch
 
         loss = F.smooth_l1_loss(state_action_values, expected_values.unsqueeze(1))
 
@@ -91,6 +94,6 @@ class DeepQAgent:
         loss.backward()
         self.optimizer.step()
 
-        if self.step_counter % DeepQAgent.TARGET_UPDATE == 0:
+        if self.step_counter % DoubleDeepQAgent.TARGET_UPDATE == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
         self.step_counter += 1
