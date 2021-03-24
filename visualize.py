@@ -15,7 +15,8 @@ LONG_OPTIONS = [
     "loadTrainArgs=",
     "episodeNb=",
     "visDim=",
-    "fps="
+    "fps=",
+    "softmax="
 ]
 
 COLORS = {
@@ -71,15 +72,17 @@ def main(argv):
         "savePath": "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/",
         "loadTrainArgs": "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/test/arguments.txt",
         "episodeNb": 250,
-        "fps": 2
+        "fps": 2,
+        "softmax": False
     }
 
     for option, argument in options:
         if option == "--loadTrainArgs":
-            with open(argument) as input_file:
+            with open(argument + "arguments.txt") as input_file:
                 input_data = json.load(input_file)
                 arguments.update(input_data)
                 arguments["episodeNb"] = arguments["nbEpisodes"]
+                arguments["loadTrainArgs"] = argument
 
         if option == "--visDim":
             arguments["visDim"] = tuple(map(int, argument.split(",")))
@@ -90,11 +93,18 @@ def main(argv):
         if option == "--fps":
             arguments["fps"] = int(argument)
 
+        if option == "--softmax":
+            arguments["softmax"] = bool(argument)
+
+    print(arguments["softmax"])
 
     env_generator = EnvironmentGenerator(arguments["heightRequired"])
+    print(f"dim: {arguments['dim']}")
     env_generator.set_dimension(arguments["dim"])
     env_generator.set_height_frequency(arguments["hFreq"])
+    print(f"oFreq: {arguments['oFreq']}")
     env_generator.set_obstacle_frequency(arguments["oFreq"])
+    print(f"fill ratio: {arguments['fillRatio']}")
     env_generator.set_fill_ration(arguments["fillRatio"])
 
     env = Environment(env_generator)
@@ -120,7 +130,7 @@ def main(argv):
         OPTIMIZERS[arguments["optim"]],
         env.get_nb_actions()
     )
-    agent.load(arguments["savePath"], arguments["episodeNb"])
+    agent.load(arguments["loadTrainArgs"], arguments["episodeNb"])
     agent.evaluate()
 
     pygame.init()
@@ -162,7 +172,7 @@ def main(argv):
             total_reward = 0.0
             done = False
         elif not done:
-            action = agent.select_action(torch.tensor(current_state, dtype=torch.float))
+            action = agent.select_action(torch.tensor(current_state, dtype=torch.float), arguments["softmax"])
             n_state, n_reward, done = env.step(action)
         else:
             print("waiting for enter")

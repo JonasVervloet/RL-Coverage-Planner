@@ -190,6 +190,11 @@ def update_terrain_map(n_clicks, size, freq_x, freq_y, fill_ratio):
     obstacle_dict["free_tiles"] = obstacle_features[1]
     obstacle_dict["start_pos"] = obstacle_features[2]
 
+    ### uncomment to show start positions
+    # obst_map = obstacle_dict["map"]
+    # list1 , list2 = zip(*obstacle_dict["start_pos"])
+    # obst_map[(list1, list2)] = 0.5
+
     return px.imshow(obstacle_dict["map"]), f"nb free tiles: {obstacle_dict['free_tiles']}"
 
 
