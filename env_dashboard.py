@@ -1,10 +1,11 @@
+import numpy as np
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import plotly.express as px
 
-from environments.noise_generation import NoiseGenerator
+from environments.terrain_generation import TerrainGenerator
 from environments.obstacle_generation import ObstacleMapGenerator
 from environments.env_representation import EnvironmentRepresentation
 
@@ -13,8 +14,11 @@ SAVE_PATH = "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-Fo
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash("ENVIRONMENT GENERATION", external_stylesheets=external_stylesheets)
 
-terrain_gen = NoiseGenerator()
-terrain_fig = px.imshow(terrain_gen.generate_noise_map(), binary_string=True)
+terrain_gen = TerrainGenerator()
+terrain_dict = {
+    "map": terrain_gen.generate_terrain_map()
+}
+terrain_fig = px.imshow(terrain_dict["map"], binary_string=True)
 
 terrain_component = html.Div(
     children=[
@@ -35,7 +39,7 @@ terrain_component = html.Div(
                     options=[
                         {'label': str(2**i), 'value': 2**i} for i in range(3, 10)
                     ],
-                    value=terrain_gen.dim[0]
+                    value=terrain_gen.noise_generator.dim[0]
                 ),
                 html.Span("frequency - x"),
                 dcc.Dropdown(
@@ -43,7 +47,7 @@ terrain_component = html.Div(
                     options=[
                         {'label': str(2**i), 'value': 2**i} for i in range(4)
                     ],
-                    value=terrain_gen.res[0]
+                    value=terrain_gen.noise_generator.res[0]
                 ),
                 html.Span("frequency - y"),
                 dcc.Dropdown(
@@ -51,7 +55,17 @@ terrain_component = html.Div(
                     options=[
                         {'label': str(2**i), 'value': 2**i} for i in range(4)
                     ],
-                    value=terrain_gen.res[1]
+                    value=terrain_gen.noise_generator.res[1]
+                ),
+                html.Span("save map"),
+                dcc.Input(
+                    id="terrain_save_name",
+                    type="text"
+                ),
+                html.Button(
+                    "SAVE",
+                    id="terrain_save_btn",
+                    n_clicks=0
                 )
             ],
             style={
@@ -77,11 +91,25 @@ terrain_component = html.Div(
 )
 def update_terrain_map(n_clicks, size, freq_x, freq_y):
     if size is not None:
-        terrain_gen.dim = (size, size)
+        terrain_gen.set_dimension((size, size))
     if freq_x is not None and freq_y is not None:
-        terrain_gen.res = (freq_x, freq_y)
+        terrain_gen.set_frequency((freq_x, freq_y))
 
-    return px.imshow(terrain_gen.generate_noise_map(), binary_string=True)
+    terrain_dict["map"] = terrain_gen.generate_terrain_map()
+
+    return px.imshow(terrain_dict["map"], binary_string=True)
+
+
+@app.callback(
+    Output(component_id='terrain_save_btn', component_property='children'),
+    Input(component_id='terrain_save_btn', component_property='n_clicks'),
+    State(component_id='terrain_save_name', component_property='value')
+)
+def save_height_map(n_clicks, name):
+    if name is not None:
+        print(name)
+        np.save(f"{SAVE_PATH}{name}.npy", terrain_dict["map"])
+    return "SAVE"
 
 
 obstacle_gen = ObstacleMapGenerator()
@@ -124,7 +152,7 @@ obstacle_component = html.Div(
                     options=[
                         {'label': str(2**i), 'value': 2**i} for i in range(4)
                     ],
-                    value=terrain_gen.res[0]
+                    value=obstacle_gen.noise_generator.res[0]
                 ),
                 html.Span("frequency - y"),
                 dcc.Dropdown(
@@ -132,7 +160,7 @@ obstacle_component = html.Div(
                     options=[
                         {'label': str(2 ** i), 'value': 2 ** i} for i in range(4)
                     ],
-                    value=terrain_gen.res[1]
+                    value=obstacle_gen.noise_generator.res[1]
                 ),
                 html.Span("fill ratio"),
                 dcc.Slider(

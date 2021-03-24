@@ -61,11 +61,6 @@ class ObstacleMapGenerator:
         return obstacle_map, cover_regions[i][1], cover_regions[i][2]
 
     @staticmethod
-    def helper_functions(region):
-        print(region)
-        return region[1]
-
-    @staticmethod
     def flood_map(map):
         visited_tiles = np.zeros_like(map)
         obstacle_regions = []

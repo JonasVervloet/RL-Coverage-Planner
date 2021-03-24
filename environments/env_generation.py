@@ -1,7 +1,8 @@
+import numpy as np
 import matplotlib.pyplot as plt
 
 from environments.obstacle_generation import ObstacleMapGenerator
-from environments.noise_generation import NoiseGenerator
+from environments.terrain_generation import TerrainGenerator
 from environments.env_representation import EnvironmentRepresentation
 
 
@@ -13,14 +14,14 @@ class EnvironmentGenerator:
         self.obstacle_generator = ObstacleMapGenerator()
 
         self.requires_height_map = requires_height_map
-        self.height_generator = NoiseGenerator()
+        self.terrain_generator = TerrainGenerator()
 
     def set_dimension(self, n_dim):
         self.obstacle_generator.set_dimension(n_dim)
-        self.height_generator.dim = n_dim
+        self.terrain_generator.set_dimension(n_dim)
 
     def set_height_frequency(self, n_freq):
-        self.height_generator.res = n_freq
+        self.terrain_generator.set_frequency(n_freq)
 
     def set_obstacle_frequency(self, n_freq):
         self.obstacle_generator.set_frequency(n_freq)
@@ -41,7 +42,7 @@ class EnvironmentGenerator:
             area = nb_tiles
 
         if self.requires_height_map:
-            env_representation.terrain_map = self.height_generator.generate_noise_map()
+            env_representation.terrain_map = self.terrain_generator.generate_terrain_map()
 
         return env_representation
 
@@ -59,10 +60,16 @@ if __name__ == "__main__":
     axs[0][0].imshow(env_repr.terrain_map)
     axs[0][1].imshow(env_repr.obstacle_map)
 
+    print(np.max(env_repr.terrain_map))
+    print(np.min(env_repr.terrain_map))
+
     env_repr = env_generator.generate_environment()
     print(env_repr.nb_free_tiles)
     axs[1][0].imshow(env_repr.terrain_map)
     axs[1][1].imshow(env_repr.obstacle_map)
+
+    print(np.max(env_repr.terrain_map))
+    print(np.min(env_repr.terrain_map))
 
     plt.show()
 

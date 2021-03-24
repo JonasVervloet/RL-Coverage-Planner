@@ -34,7 +34,7 @@ class Environment:
         return np.sum(self.visited_tiles)
 
     def get_input_depth(self):
-        return 3
+        return 4 if self.env_info.has_terrain_info() else 3
 
     def get_nb_actions(self):
         return 4

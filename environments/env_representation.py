@@ -17,6 +17,9 @@ class EnvironmentRepresentation:
         else:
             return (self.obstacle_map.shape[0], self.obstacle_map.shape[1])
 
+    def has_terrain_info(self):
+        return self.terrain_map is not None
+
     def save(self, path, name):
         json_to_save = {}
 
