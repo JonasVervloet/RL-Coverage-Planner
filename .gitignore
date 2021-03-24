@@ -133,3 +133,4 @@ dmypy.json
 
 #Data
 data/
+plot_results.py
