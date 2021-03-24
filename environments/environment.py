@@ -51,12 +51,12 @@ class Environment:
         return self.get_state()
 
     def get_state(self):
-        if self.env_info.terrain_map is not None:
-            raise Exception("NOT SUPPORTED YET")
-        else:
-            current_pos_grid = np.zeros_like(self.env_info.obstacle_map)
-            current_pos_grid[self.current_pos] = 1
+        current_pos_grid = np.zeros_like(self.env_info.obstacle_map)
+        current_pos_grid[self.current_pos] = 1
 
+        if self.env_info.has_terrain_info():
+            return np.stack([current_pos_grid, self.visited_tiles, self.env_info.obstacle_map, self.env_info.terrain_map])
+        else:
             return np.stack([current_pos_grid, self.visited_tiles, self.env_info.obstacle_map])
 
     def complete_coverage(self):
@@ -74,6 +74,10 @@ class Environment:
 
     def get_reward(self, n_pos):
         reward = -self.MOVE_PUNISHMENT
+        if self.env_info.has_terrain_info():
+            diff = abs(self.env_info.terrain_map[self.current_pos] - self.env_info.terrain_map[n_pos])
+            reward *= diff
+
         if self.env_info.obstacle_map[n_pos] == 1:
             reward -= self.OBSTACLE_PUNISHMENT
         else:
@@ -148,6 +152,7 @@ if __name__ == "__main__":
     plt.show()
 
     done = False
+    last_pos = env.current_pos
     while not done:
         print("Enter action: ")
         action = int(input())
@@ -159,7 +164,12 @@ if __name__ == "__main__":
         print(env.current_pos)
         print(env.nb_steps)
         print(np.sum(env.visited_tiles))
+        if (env.env_info.terrain_map is not None):
+            print(env.env_info.terrain_map[last_pos])
+            print(env.env_info.terrain_map[env.current_pos])
         print()
+
+        last_pos = env.current_pos
 
         plt.imshow(np.moveaxis(state, 0, -1))
         plt.show()
