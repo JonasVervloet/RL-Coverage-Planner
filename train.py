@@ -14,6 +14,8 @@ from deep_rl.deep_q_agent import DeepQAgent
 from deep_rl.double_dqn_agent import DoubleDeepQAgent
 from deep_rl.trainer import DeepRLTrainer
 
+from load import load_arguments, default_arguments, initialize_objects
+
 SHORT_OPTIONS = ""
 LONG_OPTIONS = [
     "loadArguments=",
@@ -24,6 +26,7 @@ LONG_OPTIONS = [
     "fillRatio=",
     "loadEnv=",
     "movePunish=",
+    "terrainPunish=",
     "obstaclePunish=",
     "discoverReward=",
     "coverageReward=",
@@ -61,38 +64,12 @@ def main(argv):
     except getopt.GetoptError:
         print("badly formatted command line arguments")
 
-    arguments = {
-        "heightRequired": False,
-        "dim": (16, 16),
-        "hFreq": (2, 2),
-        "oFreq": (2, 2),
-        "fillRatio": 0.14,
-        "loadEnv": None,
-        "movePunish": 0.05,
-        "obstaclePunish": 0.5,
-        "discoverReward": 1.0,
-        "coverageReward": 50.0,
-        "maxStepMultiplier": 2,
-        "networkGen": "simpleQ",
-        "rlAgent": "deepQ",
-        "optim": "rmsProp",
-        "gamma": 0.9,
-        "epsilonDecay": 2000,
-        "targetUpdate": 1000,
-        "nbEpisodes": 2000,
-        "printEvery": 50,
-        "saveEvery": 250,
-        "softmax": False,
-        "savePath": "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/"
-    }
+    arguments = default_arguments()
 
     for option, argument in options:
         if option == "--loadArguments":
-            with open(f"{argument}") as input_file:
-                input_data = json.load(input_file)
-                arguments.update(input_data)
-
-                pprint.pprint(arguments)
+            argument_split = argument.split(",")
+            arguments.update(load_arguments(argument_split[0], argument_split[1]))
 
         if option == "--heightRequired":
             arguments["heightRequired"] = True
@@ -114,6 +91,9 @@ def main(argv):
 
         if option == "--movePunish":
             arguments["movePunish"] = float(argument)
+
+        if option == "--terrainPunish":
+            arguments["terrainPunish"] = float(argument)
 
         if option == "--obstaclePunish":
             arguments["obstaclePunish"] = float(argument)
@@ -178,57 +158,63 @@ def main(argv):
     with open(f"{arguments['savePath']}arguments.txt", 'w') as output_file:
         json.dump(arguments, output_file)
 
-    env_generator = EnvironmentGenerator(arguments["heightRequired"])
-    print(f"dim: {arguments['dim']}")
-    env_generator.set_dimension(arguments["dim"])
-    env_generator.set_height_frequency(arguments["hFreq"])
-    print(f"oFreq: {arguments['oFreq']}")
-    env_generator.set_obstacle_frequency(arguments["oFreq"])
-    print(f"fill ratio: {arguments['fillRatio']}")
-    env_generator.set_fill_ration(arguments["fillRatio"])
+    env, agent, trainer = initialize_objects(arguments, trainer_required=True)
 
-    env = Environment(env_generator)
-    if arguments["loadEnv"] is not None:
-        print("loading environment...")
-        env_repr = EnvironmentRepresentation()
-        env_repr.load(arguments["loadEnv"][0], arguments["loadEnv"][1])
-        arguments["dim"] = env_repr.get_dimension()
-        env.set_environment_representation(env_repr)
-
-    print(f"single environment: {env.single_env}")
-
-    env.MOVE_PUNISHMENT = arguments["movePunish"]
-    env.OBSTACLE_PUNISHMENT = arguments["obstaclePunish"]
-    env.DISCOVER_REWARD = arguments["discoverReward"]
-    env.COVERAGE_REWARD = arguments["coverageReward"]
-    env.MAX_STEP_MULTIPLIER = arguments["maxStepMultiplier"]
-
-    network_generator = GENERATORS[arguments["networkGen"]](
-        arguments["dim"],
-        env.get_input_depth(),
-        env.get_nb_actions()
-    )
-    optim_class = OPTIMIZERS[arguments["optim"]]
-    print(f"agent class: {arguments['rlAgent']}")
-    agent = AGENTS[arguments["rlAgent"]](
-        network_generator,
-        optim_class,
-        env.get_nb_actions()
-    )
-    agent.EPSILON_DECAY = arguments["epsilonDecay"]
-    print(f"gamma: {arguments['gamma']}")
-    agent.GAMMA = arguments["gamma"]
-    print(f"target update: {arguments['targetUpdate']}")
-    agent.TARGET_UPDATE = arguments["targetUpdate"]
-
-    DeepRLTrainer.NB_EPISODES = arguments["nbEpisodes"]
-    DeepRLTrainer.INFO_EVERY = arguments["printEvery"]
-    DeepRLTrainer.SAVE_EVERY = arguments["saveEvery"]
-    print(f"softmax: {arguments['softmax']}")
-    DeepRLTrainer.SOFT_MAX = arguments["softmax"]
-
-    trainer = DeepRLTrainer(env, agent, arguments["savePath"])
     trainer.train()
+
+    # env_generator = EnvironmentGenerator(arguments["heightRequired"])
+    # print(f"dim: {arguments['dim']}")
+    # env_generator.set_dimension(arguments["dim"])
+    # env_generator.set_height_frequency(arguments["hFreq"])
+    # print(f"oFreq: {arguments['oFreq']}")
+    # env_generator.set_obstacle_frequency(arguments["oFreq"])
+    # print(f"fill ratio: {arguments['fillRatio']}")
+    # env_generator.set_fill_ration(arguments["fillRatio"])
+    #
+    # env = Environment(env_generator)
+    # if arguments["loadEnv"] is not None:
+    #     print("loading environment...")
+    #     env_repr = EnvironmentRepresentation()
+    #     env_repr.load(arguments["loadEnv"][0], arguments["loadEnv"][1])
+    #     arguments["dim"] = env_repr.get_dimension()
+    #     env.set_environment_representation(env_repr)
+    #
+    # print(f"single environment: {env.single_env}")
+    # print(f"terrain info: {env.gives_terrain_info()}")
+    #
+    # env.MOVE_PUNISHMENT = arguments["movePunish"]
+    # env.TERRAIN_PUNISHMENT = arguments["terrainPunish"]
+    # env.OBSTACLE_PUNISHMENT = arguments["obstaclePunish"]
+    # env.DISCOVER_REWARD = arguments["discoverReward"]
+    # env.COVERAGE_REWARD = arguments["coverageReward"]
+    # env.MAX_STEP_MULTIPLIER = arguments["maxStepMultiplier"]
+    #
+    # network_generator = GENERATORS[arguments["networkGen"]](
+    #     arguments["dim"],
+    #     env.get_input_depth(),
+    #     env.get_nb_actions()
+    # )
+    # optim_class = OPTIMIZERS[arguments["optim"]]
+    # print(f"agent class: {arguments['rlAgent']}")
+    # agent = AGENTS[arguments["rlAgent"]](
+    #     network_generator,
+    #     optim_class,
+    #     env.get_nb_actions()
+    # )
+    # agent.EPSILON_DECAY = arguments["epsilonDecay"]
+    # print(f"gamma: {arguments['gamma']}")
+    # agent.GAMMA = arguments["gamma"]
+    # print(f"target update: {arguments['targetUpdate']}")
+    # agent.TARGET_UPDATE = arguments["targetUpdate"]
+    #
+    # DeepRLTrainer.NB_EPISODES = arguments["nbEpisodes"]
+    # DeepRLTrainer.INFO_EVERY = arguments["printEvery"]
+    # DeepRLTrainer.SAVE_EVERY = arguments["saveEvery"]
+    # print(f"softmax: {arguments['softmax']}")
+    # DeepRLTrainer.SOFT_MAX = arguments["softmax"]
+    #
+    # trainer = DeepRLTrainer(env, agent, arguments["savePath"])
+    # trainer.train()
 
 
 if __name__ == "__main__":

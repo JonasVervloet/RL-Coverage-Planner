@@ -2,12 +2,14 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 
+from environments.env_generation import SingleEnvironmentGenerator
 from environments.env_representation import EnvironmentRepresentation
 
 
 class Environment:
 
     MOVE_PUNISHMENT = 0.05
+    TERRAIN_PUNISHMENT = 0.05
     OBSTACLE_PUNISHMENT = 0.5
 
     DISCOVER_REWARD = 1.0
@@ -15,25 +17,31 @@ class Environment:
 
     MAX_STEP_MULTIPLIER = 2
 
-    def __init__(self, generator=None):
-        self.generator = generator
+    def __init__(self, generator):
 
+        self.generator = generator
         self.env_info = None
+
         self.current_pos = None
         self.visited_tiles = None
-        self.nb_steps = 0
         self.done = True
+        self.nb_steps = 0
+        self.total_reward = 0.0
+        self.total_terrain_diff = 0.0
 
-        self.single_env = False
+        self.reset()
 
-    def set_environment_representation(self, representation):
-        self.env_info = representation
-        self.single_env = True
+    def get_dimension(self):
+        return self.generator.get_dimension()
+
+    def gives_terrain_info(self):
+        return self.env_info.has_terrain_info()
 
     def get_nb_visited_tiles(self):
         return np.sum(self.visited_tiles)
 
     def get_input_depth(self):
+        self.reset()
         return 4 if self.env_info.has_terrain_info() else 3
 
     def get_nb_actions(self):
@@ -41,12 +49,13 @@ class Environment:
 
     def reset(self):
         self.done = False
-        if not self.single_env:
-            self.env_info = self.generator.generate_environment()
+        self.env_info = self.generator.generate_environment()
         self.current_pos = random.sample(self.env_info.start_positions, 1)[0]
         self.visited_tiles = np.zeros_like(self.env_info.obstacle_map)
         self.visited_tiles[self.current_pos] = 1
         self.nb_steps = 0
+        self.total_reward = 0
+        self.total_terrain_diff = 0
 
         return self.get_state()
 
@@ -76,7 +85,7 @@ class Environment:
         reward = -self.MOVE_PUNISHMENT
         if self.env_info.has_terrain_info():
             diff = abs(self.env_info.terrain_map[self.current_pos] - self.env_info.terrain_map[n_pos])
-            reward *= diff
+            reward += diff * -self.TERRAIN_PUNISHMENT
 
         if self.env_info.obstacle_map[n_pos] == 1:
             reward -= self.OBSTACLE_PUNISHMENT
@@ -122,24 +131,37 @@ class Environment:
         self.nb_steps += 1
 
         reward = self.get_reward(n_position)
+        self.total_reward += reward
         done = self.is_done(n_position)
 
         if self.env_info.obstacle_map[n_position] == 0 and self.visited_tiles[n_position] == 0:
             self.visited_tiles[n_position] = 1
 
+        info = {
+            "reward": reward,
+            "total reward": self.total_reward,
+            "nb steps": self.nb_steps,
+            "nb visited tiles": self.get_nb_visited_tiles(),
+            "complete coverage": self.complete_coverage(),
+        }
+        if self.env_info.has_terrain_info():
+            terrain_diff = abs(
+                self.env_info.terrain_map[self.current_pos] - self.env_info.terrain_map[n_position]
+            )
+            self.total_terrain_diff += terrain_diff
+            info["terrain diff"] = terrain_diff
+            info["total terrain diff"] = self.total_terrain_diff
+
         self.current_pos = n_position
 
-        return self.get_state(), reward, done
+        return self.get_state(), reward, done, info
 
 
 if __name__ == "__main__":
     save_path = "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/"
 
-    env_representation = EnvironmentRepresentation()
-    env_representation.load(save_path, "env_8x")
-
-    env = Environment()
-    env.set_environment_representation(env_representation)
+    generator = SingleEnvironmentGenerator([save_path, "env_8x_terrain"])
+    env = Environment(generator)
 
     state = env.reset()
     print(state.shape)
@@ -157,16 +179,19 @@ if __name__ == "__main__":
         print("Enter action: ")
         action = int(input())
         print()
-        state, reward, done = env.step(action)
+        state, reward, done, info = env.step(action)
         print(state.shape)
-        print(reward)
-        print(done)
-        print(env.current_pos)
-        print(env.nb_steps)
-        print(np.sum(env.visited_tiles))
+        print(f"reward: {info['reward']}")
+        print(f"total reward: {info['total reward']}")
+        print(f"done: {done}")
+        print(f"current position: {env.current_pos}")
+        print(f"nb steps: {info['nb steps']}")
+        print(f"visited tiles: {info['nb visited tiles']}")
         if (env.env_info.terrain_map is not None):
             print(env.env_info.terrain_map[last_pos])
             print(env.env_info.terrain_map[env.current_pos])
+            print(f"terrain diff: {info['terrain diff']}")
+            print(f"total terrain diff:  {info['total terrain diff']}")
         print()
 
         last_pos = env.current_pos

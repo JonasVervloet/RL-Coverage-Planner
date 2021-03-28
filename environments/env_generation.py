@@ -16,6 +16,9 @@ class EnvironmentGenerator:
         self.requires_height_map = requires_height_map
         self.terrain_generator = TerrainGenerator()
 
+    def get_dimension(self):
+        return self.obstacle_generator.dim
+
     def set_dimension(self, n_dim):
         self.obstacle_generator.set_dimension(n_dim)
         self.terrain_generator.set_dimension(n_dim)
@@ -45,6 +48,18 @@ class EnvironmentGenerator:
             env_representation.terrain_map = self.terrain_generator.generate_terrain_map()
 
         return env_representation
+
+
+class SingleEnvironmentGenerator:
+    def __init__(self, load_info):
+        self.env_representation = EnvironmentRepresentation()
+        self.env_representation.load(load_info[0], load_info[1])
+
+    def generate_environment(self):
+        return self.env_representation
+
+    def get_dimension(self):
+        return self.env_representation.get_dimension()
 
 
 if __name__ == "__main__":
