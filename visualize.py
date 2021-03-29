@@ -1,17 +1,9 @@
 import sys, getopt
 import numpy as np
-import matplotlib.pyplot as plt
-import json
 import pygame
 import torch
 
-from environments.env_generation import EnvironmentGenerator
-from environments.env_representation import EnvironmentRepresentation
-from environments.environment import Environment
-
 from load import default_arguments, load_arguments, initialize_objects
-
-from train import GENERATORS, AGENTS, OPTIMIZERS
 
 SHORT_OPTIONS = ""
 LONG_OPTIONS = [

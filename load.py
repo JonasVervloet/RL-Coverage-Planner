@@ -27,6 +27,8 @@ DEFAULT_ARGUMENTS = {
     "maxStepMultiplier": 2,
     "networkGen": "simpleQ",
     "rlAgent": "deepQ",
+    "inputMatch": True,
+    "agentInpDepth": 3,
     "optim": "rmsProp",
     "gamma": 0.9,
     "epsilonDecay": 2000,
@@ -86,7 +88,7 @@ def initialize_objects(args, trainer_required=False):
 
     network_generator = GENERATORS[arguments["networkGen"]](
         arguments["dim"],
-        env.get_input_depth(),
+        env.get_input_depth() if arguments["inputMatch"] else arguments["agentInpDepth"],
         env.get_nb_actions()
     )
     agent = AGENTS[arguments["rlAgent"]](
