@@ -1,0 +1,1 @@
+{"obstacle_grid": "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/env_8x_obstacle_grid.npy", "terrain_grid": null, "start_positions": [[1, 3], [1, 4], [2, 2], [2, 3], [1, 5], [2, 5], [3, 1], [3, 2], [2, 6], [3, 6], [4, 1], [4, 5], [4, 6], [5, 1], [5, 2], [5, 5], [6, 2], [6, 3], [6, 4], [6, 5]], "nb_free_tiles": 29}

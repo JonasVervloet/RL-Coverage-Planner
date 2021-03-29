@@ -59,6 +59,7 @@ def main(argv):
     arguments = default_arguments()
     arguments["loadTrainArgs"] = "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/test/arguments.txt"
     arguments["episodeNb"] = 250
+    arguments["visDim"] = (500,500)
     arguments["fps"] = 2
     arguments["softmax"] = False
 
