@@ -37,7 +37,7 @@ terrain_component = html.Div(
                 dcc.Dropdown(
                     id="terrain_map_size",
                     options=[
-                        {'label': str(2**i), 'value': 2**i} for i in range(3, 10)
+                        {'label': str(2*i), 'value': 2*i} for i in range(4, 11)
                     ],
                     value=terrain_gen.noise_generator.dim[0]
                 ),
@@ -45,7 +45,7 @@ terrain_component = html.Div(
                 dcc.Dropdown(
                     id="terrain_map_freq_x",
                     options=[
-                        {'label': str(2**i), 'value': 2**i} for i in range(4)
+                        {'label': str(i), 'value': i} for i in range(2, 21)
                     ],
                     value=terrain_gen.noise_generator.res[0]
                 ),
@@ -53,7 +53,7 @@ terrain_component = html.Div(
                 dcc.Dropdown(
                     id="terrain_map_freq_y",
                     options=[
-                        {'label': str(2**i), 'value': 2**i} for i in range(4)
+                        {'label': str(i), 'value': i} for i in range(2,21)
                     ],
                     value=terrain_gen.noise_generator.res[1]
                 ),
@@ -142,7 +142,7 @@ obstacle_component = html.Div(
                 dcc.Dropdown(
                     id="obstacle_map_size",
                     options=[
-                        {'label': str(2**i), 'value': 2**i} for i in range(3, 10)
+                        {'label': str(2*i), 'value': 2*i} for i in range(4, 11)
                     ],
                     value=obstacle_gen.dim[0]
                 ),
@@ -150,7 +150,7 @@ obstacle_component = html.Div(
                 dcc.Dropdown(
                     id="obstacle_map_freq_x",
                     options=[
-                        {'label': str(2**i), 'value': 2**i} for i in range(4)
+                        {'label': str(i), 'value': i} for i in range(2, 21)
                     ],
                     value=obstacle_gen.noise_generator.res[0]
                 ),
@@ -158,7 +158,7 @@ obstacle_component = html.Div(
                 dcc.Dropdown(
                     id="obstacle_map_freq_y",
                     options=[
-                        {'label': str(2 ** i), 'value': 2 ** i} for i in range(4)
+                        {'label': str(i), 'value': i} for i in range(2,21)
                     ],
                     value=obstacle_gen.noise_generator.res[1]
                 ),

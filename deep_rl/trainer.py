@@ -89,8 +89,9 @@ class DeepRLTrainer:
                 print(f"total reward: {info['total reward']}")
                 print(f"nb steps: {info['nb steps']}")
                 print(f"tiles visited: {info['nb visited tiles']}")
-                print(f"total terrain diff: {info['total terrain diff']}")
                 print(f"epsilon: {self.agent.epsilon}")
+                if self.env.gives_terrain_info():
+                    print(f"total terrain diff: {info['total terrain diff']}")
                 print()
 
             if episode_nb % DeepRLTrainer.SAVE_EVERY == 0:

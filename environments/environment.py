@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from environments.env_generation import SingleEnvironmentGenerator
-from environments.env_representation import EnvironmentRepresentation
 
 
 class Environment:
@@ -113,6 +112,9 @@ class Environment:
 
         return False
 
+    def get_extra_info(self):
+        return {}
+
     def step(self, action):
         if self.done:
             raise Exception("ENVIRONMENT: should reset first...")
@@ -154,7 +156,91 @@ class Environment:
 
         self.current_pos = n_position
 
+        info.update(self.get_extra_info())
+
         return self.get_state(), reward, done, info
+
+
+class EnvironmentFOV(Environment):
+    def __init__(self, generator):
+        self.fov = 5
+        super().__init__(generator)
+
+    def set_fov(self, n_fov):
+        assert(n_fov % 2 == 1)
+        self.fov = n_fov
+
+    def get_obstacle_map(self):
+        return self.env_info.obstacle_map
+
+    def get_height_map(self):
+        assert(self.gives_terrain_info())
+        return self.env_info.terrain_map
+
+    def get_coverage_map(self):
+        return self.visited_tiles
+
+    def get_extra_info(self):
+        fov_offset = self.fov//2
+        pos_x = self.current_pos[0]
+        pos_y = self.current_pos[1]
+        return {
+            "fov": [
+                [pos_x - fov_offset, pos_y - fov_offset],
+                [pos_x + fov_offset + 1, pos_y - fov_offset],
+                [pos_x + fov_offset + 1, pos_y + fov_offset + 1],
+                [pos_x - fov_offset, pos_y + fov_offset + 1]
+            ],
+            'position': self.current_pos
+        }
+
+    def get_state(self):
+        dim_x = self.get_dimension()[0]
+        dim_y = self.get_dimension()[1]
+
+        current_x = self.current_pos[0]
+        current_y = self.current_pos[1]
+
+        half_fov = self.fov//2
+
+        extended_obstacle_grid = np.ones([dim_x + self.fov - 1, dim_y + self.fov - 1])
+        extended_obstacle_grid[
+            half_fov:-half_fov,
+            half_fov:-half_fov
+        ] = self.env_info.obstacle_map
+
+        obstacles_fov = extended_obstacle_grid[
+            current_x:current_x+self.fov,
+            current_y:current_y+self.fov
+        ]
+
+        extended_coverage_grid = np.zeros([dim_x + self.fov - 1, dim_y + self.fov - 1])
+        extended_coverage_grid[
+            half_fov:-half_fov,
+            half_fov:-half_fov
+        ] = self.visited_tiles
+
+        coverage_fov = extended_coverage_grid[
+            current_x:current_x+self.fov,
+            current_y:current_y+self.fov
+        ]
+
+        if not self.env_info.has_terrain_info():
+            return np.stack([obstacles_fov, coverage_fov])
+
+        extended_terrain_grid = np.zeros([dim_x + self.fov - 1, dim_y + self.fov - 1])
+        extended_coverage_grid[
+            half_fov:-half_fov,
+            half_fov:-half_fov
+        ] = self.env_info.terrain_map
+
+        terrain_fov = extended_terrain_grid[
+            current_x:current_x + self.fov,
+            current_y:current_y + self.fov
+        ]
+
+        return np.stack([obstacles_fov, coverage_fov, terrain_fov])
+
 
 
 if __name__ == "__main__":

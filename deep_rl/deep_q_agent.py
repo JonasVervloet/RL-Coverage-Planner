@@ -51,8 +51,9 @@ class DeepQAgent:
             return distribution.sample().item()
 
     def update_epsilon(self, episode_nb):
-        diff = DeepQAgent.EPSILON_START - DeepQAgent.EPSILON_END
-        self.epsilon = DeepQAgent.EPSILON_END + diff * math.exp(-1 * episode_nb / DeepQAgent.EPSILON_DECAY)
+        diff = self.EPSILON_START - self.EPSILON_END
+        exponent = -1 * episode_nb / self.EPSILON_DECAY
+        self.epsilon = self.EPSILON_END + diff * math.exp(exponent)
 
     def save(self, path, episode_nb):
         torch.save(self.policy_net.state_dict(), path + f"deep_q_agent_{episode_nb}.pt")
