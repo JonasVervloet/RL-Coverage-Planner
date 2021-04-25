@@ -3,7 +3,7 @@ import pprint
 import torch.optim as optim
 
 from environments.env_generation import EnvironmentGenerator, SingleEnvironmentGenerator
-from environments.environment import Environment
+from environments.environment import Environment, EnvironmentFOV
 
 from networks.simple_q_network import SimpleDeepQNetworkGenerator
 from networks.simple_q_network import SimpleDeepQNetworkGenerator2
@@ -25,6 +25,7 @@ DEFAULT_ARGUMENTS = {
     "discoverReward": 1.0,
     "coverageReward": 50.0,
     "maxStepMultiplier": 2,
+    "fov": None,
     "networkGen": "simpleQ",
     "rlAgent": "deepQ",
     "inputMatch": True,
@@ -78,7 +79,12 @@ def initialize_objects(args, trainer_required=False):
         env_generator.set_obstacle_frequency(arguments["oFreq"])
         env_generator.set_fill_ration(arguments["fillRatio"])
 
-    env = Environment(env_generator)
+    if arguments["fov"] is None:
+        env = Environment(env_generator)
+    else:
+        env = EnvironmentFOV(env_generator)
+        env.set_fov(arguments["fov"])
+
     env.MOVE_PUNISHMENT = arguments["movePunish"]
     env.TERRAIN_PUNISHMENT = arguments["terrainPunish"]
     env.OBSTACLE_PUNISHMENT = arguments["obstaclePunish"]
@@ -87,7 +93,7 @@ def initialize_objects(args, trainer_required=False):
     env.MAX_STEP_MULTIPLIER = arguments["maxStepMultiplier"]
 
     network_generator = GENERATORS[arguments["networkGen"]](
-        arguments["dim"],
+        env.get_state_dimension(),
         env.get_input_depth() if arguments["inputMatch"] else arguments["agentInpDepth"],
         env.get_nb_actions()
     )

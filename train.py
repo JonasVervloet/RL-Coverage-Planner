@@ -31,6 +31,7 @@ LONG_OPTIONS = [
     "discoverReward=",
     "coverageReward=",
     "maxStepMultiplier=",
+    "fov=",
     "gamma=",
     "networkGen=",
     "rlAgent=",
@@ -106,6 +107,9 @@ def main(argv):
 
         if option == "--maxStepMultiplier":
             arguments["maxStepMultiplier"] = int(argument)
+
+        if option == "--fov":
+            arguments["fov"] = int(argument)
 
         if option == "--gamma":
             arguments["gamma"] = float(argument)

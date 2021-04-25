@@ -50,6 +50,35 @@ def state_to_image(state, nb_repeats):
     return scaled_img
 
 
+def state_to_surface(maps, nb_repeats, info):
+    m, n = maps["obstacle_map"].shape
+
+    unscaled_img = np.zeros((m, n, 3))
+    unscaled_img[maps["obstacle_map"].astype(bool)] = np.array(COLORS["coffee_brown"])
+    unscaled_img[maps["coverage_map"].astype(bool)] = np.array(COLORS["forest_green"])
+
+    if "terrain_map" in maps:
+        print("visualize.py: terrain not yet implemented")
+
+    unscaled_img[info['position']] = np.array(COLORS["white"])
+    if maps["obstacle_map"][info['position']] == 1.0:
+        unscaled_img[info['position']] = np.array(COLORS["red"])
+    unscaled_img = np.moveaxis(unscaled_img, 0, 1)
+
+    scaled_img = np.repeat(unscaled_img, nb_repeats[0], axis=0)
+    scaled_img = np.repeat(scaled_img, nb_repeats[1], axis=1)
+
+    surface = pygame.surfarray.make_surface(scaled_img)
+    if "fov" in info:
+        fov_points = np.array(info['fov'])
+        fov_points[:, 0] *= nb_repeats[0]
+        fov_points[:, 1] *= nb_repeats[1]
+        fov_points[:, [0, 1]] = fov_points[:, [1, 0]]
+        pygame.draw.lines(surface, color=(235, 245, 255), closed=True, points=fov_points)
+
+    return surface
+
+
 def main(argv):
     try:
         options, args = getopt.getopt(argv, SHORT_OPTIONS, LONG_OPTIONS)
@@ -99,6 +128,11 @@ def main(argv):
 
     done = False
     current_state = env.reset()
+    info = env.get_extra_info()
+    maps = {
+        "obstacle_map": env.get_obstacle_map(),
+        "coverage_map": env.get_coverage_map()
+    }
     total_reward = 0.0
     reward = 0.0
 
@@ -112,9 +146,8 @@ def main(argv):
             if event.type == pygame.KEYDOWN:
                 enter_pressed = True
 
-        img = state_to_image(current_state, nb_repeats)
-        state_surface = pygame.surfarray.make_surface(img)
-        screen.blit(state_surface, (40, 40))
+        env_surface = state_to_surface(maps, nb_repeats, info)
+        screen.blit(env_surface, (40, 40))
 
         text = font.render(f"REWARD: {round(reward, 3)} --- TOTAL REWARD: {round(total_reward, 3)}",
                            True, COLORS['black'], COLORS['white'])
@@ -123,11 +156,15 @@ def main(argv):
         if enter_pressed:
             n_reward = 0.0
             n_state = env.reset()
+            info = env.get_extra_info()
+            maps["obstacle_map"] = env.get_obstacle_map()
+            maps["coverage_map"] = env.get_coverage_map()
             total_reward = 0.0
             done = False
         elif not done:
             action = agent.select_action(torch.tensor(current_state, dtype=torch.float), arguments["softmax"])
-            n_state, n_reward, done, _ = env.step(action)
+            n_state, n_reward, done, info = env.step(action)
+            maps["coverage_map"] = env.get_coverage_map()
         else:
             print("waiting for enter")
             n_reward = 0.0
