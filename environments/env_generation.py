@@ -11,15 +11,19 @@ class EnvironmentGenerator:
     MIN_AREA = 15
 
     def __init__(self, requires_height_map=False):
+
+        self.dim = (8, 8)
+
         self.obstacle_generator = ObstacleMapGenerator()
 
         self.requires_height_map = requires_height_map
         self.terrain_generator = TerrainGenerator()
 
     def get_dimension(self):
-        return self.obstacle_generator.dim
+        return self.dim
 
     def set_dimension(self, n_dim):
+        self.dim = n_dim
         self.obstacle_generator.set_dimension(n_dim)
         self.terrain_generator.set_dimension(n_dim)
 
@@ -32,19 +36,32 @@ class EnvironmentGenerator:
     def set_fill_ration(self, n_ratio):
         self.obstacle_generator.fill_ratio = n_ratio
 
-    def generate_environment(self):
+    def generate_environment(self, extra_spacing=False):
         env_representation = EnvironmentRepresentation()
+        env_representation.set_dimension(self.dim)
+        extra_x = 0
+        extra_y = 0
+        if extra_spacing:
+            extra_x = (self.dim[0] - 1) // 5
+            extra_y = (self.dim[1] - 1) // 5
+        extra_dim_x = self.dim[0] + 2 * extra_x
+        extra_dim_y = self.dim[1] + 2 * extra_y
+        env_representation.set_extra_spacing((extra_x, extra_y))
 
         area = 0
-        while area < 15:
+        while area < self.MIN_AREA:
             obstacle_map, nb_tiles, start_positions = self.obstacle_generator.generate_obstacle_map()
-            env_representation.obstacle_map = obstacle_map
+            extra_obstacle_map = np.ones((extra_dim_x, extra_dim_y))
+            extra_obstacle_map[extra_x:extra_dim_x-extra_x, extra_y:extra_dim_y-extra_y] = obstacle_map
+
+            env_representation.obstacle_map = extra_obstacle_map
             env_representation.nb_free_tiles = nb_tiles
             env_representation.start_positions = start_positions
 
             area = nb_tiles
 
         if self.requires_height_map:
+            self.terrain_generator.set_dimension((extra_dim_x, extra_dim_y))
             env_representation.terrain_map = self.terrain_generator.generate_terrain_map()
 
         return env_representation

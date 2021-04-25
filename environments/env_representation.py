@@ -11,11 +11,37 @@ class EnvironmentRepresentation:
         self.start_positions = None
         self.nb_free_tiles = 0
 
+        self.dim = (8, 8)
+        self.extra_spacing = (0, 0)
+
+    def set_dimension(self, n_dim):
+        self.dim = n_dim
+
+    def set_extra_spacing(self, n_spacing):
+        self.extra_spacing = n_spacing
+
     def get_dimension(self):
-        if self.obstacle_map is None:
-            raise Exception("Environment Representation: representation not initialized")
+        return self.dim
+
+    def get_obstacle_map(self, extra_spacing=False):
+        if not extra_spacing:
+            x_tot, y_tot = self.obstacle_map.shape
+            return self.obstacle_map[
+                   self.extra_spacing[0]:x_tot-self.extra_spacing[0],
+                   self.extra_spacing[1]:y_tot-self.extra_spacing[1]
+            ]
         else:
-            return (self.obstacle_map.shape[0], self.obstacle_map.shape[1])
+            return self.obstacle_map
+
+    def get_terrain_map(self, extra_spacing=False):
+        if not extra_spacing:
+            x_tot, y_tot = self.obstacle_map.shape
+            return self.terrain_map[
+                   self.extra_spacing[0]:x_tot-self.extra_spacing[0],
+                   self.extra_spacing[1]:y_tot-self.extra_spacing[1]
+            ]
+        else:
+            return self.terrain_map
 
     def has_terrain_info(self):
         return self.terrain_map is not None

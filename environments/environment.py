@@ -33,8 +33,17 @@ class Environment:
     def get_dimension(self):
         return self.generator.get_dimension()
 
+    def get_state_dimension(self):
+        return self.get_dimension()
+
     def gives_terrain_info(self):
         return self.env_info.has_terrain_info()
+
+    def get_obstacle_map(self):
+        return self.env_info.get_obstacle_map()
+
+    def get_coverage_map(self):
+        return self.visited_tiles
 
     def get_nb_visited_tiles(self):
         return np.sum(self.visited_tiles)
@@ -83,10 +92,10 @@ class Environment:
     def get_reward(self, n_pos):
         reward = -self.MOVE_PUNISHMENT
         if self.env_info.has_terrain_info():
-            diff = abs(self.env_info.terrain_map[self.current_pos] - self.env_info.terrain_map[n_pos])
+            diff = abs(self.env_info.get_terrain_map()[self.current_pos] - self.env_info.get_terrain_map()[n_pos])
             reward += diff * -self.TERRAIN_PUNISHMENT
 
-        if self.env_info.obstacle_map[n_pos] == 1:
+        if self.env_info.get_obstacle_map()[n_pos] == 1:
             reward -= self.OBSTACLE_PUNISHMENT
         else:
             if self.visited_tiles[n_pos] == 0:
@@ -98,7 +107,7 @@ class Environment:
         return reward
 
     def is_done(self, n_pos):
-        if self.env_info.obstacle_map[n_pos] == 1:
+        if self.env_info.get_obstacle_map()[n_pos] == 1:
             self.done = True
             return True
 
@@ -113,7 +122,9 @@ class Environment:
         return False
 
     def get_extra_info(self):
-        return {}
+        return {
+            'position': self.current_pos
+        }
 
     def step(self, action):
         if self.done:
@@ -136,7 +147,7 @@ class Environment:
         self.total_reward += reward
         done = self.is_done(n_position)
 
-        if self.env_info.obstacle_map[n_position] == 0 and self.visited_tiles[n_position] == 0:
+        if self.env_info.get_obstacle_map()[n_position] == 0 and self.visited_tiles[n_position] == 0:
             self.visited_tiles[n_position] = 1
 
         info = {
@@ -170,15 +181,16 @@ class EnvironmentFOV(Environment):
         assert(n_fov % 2 == 1)
         self.fov = n_fov
 
-    def get_obstacle_map(self):
-        return self.env_info.obstacle_map
+    def get_state_dimension(self):
+        return (self.fov, self.fov)
+
+    def get_input_depth(self):
+        self.reset()
+        return 3 if self.env_info.has_terrain_info() else 2
 
     def get_height_map(self):
         assert(self.gives_terrain_info())
         return self.env_info.terrain_map
-
-    def get_coverage_map(self):
-        return self.visited_tiles
 
     def get_extra_info(self):
         fov_offset = self.fov//2
