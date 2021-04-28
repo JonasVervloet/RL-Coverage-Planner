@@ -72,7 +72,7 @@ class SingleEnvironmentGenerator:
         self.env_representation = EnvironmentRepresentation()
         self.env_representation.load(load_info[0], load_info[1])
 
-    def generate_environment(self):
+    def generate_environment(self, extra_spacing=False):
         return self.env_representation
 
     def get_dimension(self):

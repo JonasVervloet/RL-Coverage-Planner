@@ -4,6 +4,7 @@ import torch.optim as optim
 
 from environments.env_generation import EnvironmentGenerator, SingleEnvironmentGenerator
 from environments.environment import Environment, EnvironmentFOV
+from environments.turn_environment import SimpleTurnEnvironment
 
 from networks.simple_q_network import SimpleDeepQNetworkGenerator
 from networks.simple_q_network import SimpleDeepQNetworkGenerator2
@@ -26,6 +27,7 @@ DEFAULT_ARGUMENTS = {
     "coverageReward": 50.0,
     "maxStepMultiplier": 2,
     "fov": None,
+    "turnEnv": False,
     "networkGen": "simpleQ",
     "rlAgent": "deepQ",
     "inputMatch": True,
@@ -69,6 +71,9 @@ def initialize_objects(args, trainer_required=False):
     arguments = default_arguments()
     arguments.update(args)
 
+    print("Initializing objects...")
+    print(arguments)
+
     if arguments["loadEnv"] is not None:
         env_generator = SingleEnvironmentGenerator(arguments["loadEnv"])
         arguments["dim"] = env_generator.get_dimension()
@@ -79,11 +84,16 @@ def initialize_objects(args, trainer_required=False):
         env_generator.set_obstacle_frequency(arguments["oFreq"])
         env_generator.set_fill_ration(arguments["fillRatio"])
 
-    if arguments["fov"] is None:
+    if arguments["fov"] is not None and arguments["turnEnv"]:
+        raise Exception("FOV and TurnEnvironment combination not yet supported!!")
+
+    if arguments["fov"] is None and not arguments["turnEnv"]:
         env = Environment(env_generator)
-    else:
+    elif arguments["fov"] is not None:
         env = EnvironmentFOV(env_generator)
         env.set_fov(arguments["fov"])
+    else:
+        env = SimpleTurnEnvironment(env_generator)
 
     env.MOVE_PUNISHMENT = arguments["movePunish"]
     env.TERRAIN_PUNISHMENT = arguments["terrainPunish"]

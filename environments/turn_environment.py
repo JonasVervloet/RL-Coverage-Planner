@@ -23,6 +23,9 @@ class SimpleTurnEnvironment(Environment):
         self.angle_count = 0
         super().__init__(generator)
 
+    def get_nb_actions(self):
+        return 3
+
     def reset(self):
         self.done = False
         self.env_info = self.generator.generate_environment(extra_spacing=True)
@@ -62,14 +65,15 @@ class SimpleTurnEnvironment(Environment):
         curr_coverage_map = full_coverage_map[(xx_idxs, yy_idxs)]
 
         curr_pos_map = np.zeros((dim_x, dim_y))
-        curr_pos_x = self.current_pos[0] + 0.5 - (dim_x / 2)
-        curr_pos_y = self.current_pos[1] + 0.5 - (dim_y / 2)
-        rot_pos_x = curr_pos_x * math.cos(angle) + curr_pos_y * math.sin(angle)
-        rot_pos_y = -curr_pos_x * math.sin(angle) + curr_pos_y * math.cos(angle)
-        curr_pos_map[
-            math.floor(rot_pos_x + dim_x / 2),
-            math.floor(rot_pos_y + dim_y / 2)
-        ] = 1.0
+        if not self.env_info.get_obstacle_map()[self.current_pos] == 1:
+            curr_pos_x = self.current_pos[0] + 0.5 - (dim_x / 2)
+            curr_pos_y = self.current_pos[1] + 0.5 - (dim_y / 2)
+            rot_pos_x = curr_pos_x * math.cos(angle) + curr_pos_y * math.sin(angle)
+            rot_pos_y = -curr_pos_x * math.sin(angle) + curr_pos_y * math.cos(angle)
+            curr_pos_map[
+                math.floor(rot_pos_x + dim_x / 2),
+                math.floor(rot_pos_y + dim_y / 2)
+            ] = 1.0
 
         if self.gives_terrain_info():
             full_terrain_map = self.env_info.get_terrain_map(extra_spacing=True)

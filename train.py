@@ -32,6 +32,7 @@ LONG_OPTIONS = [
     "coverageReward=",
     "maxStepMultiplier=",
     "fov=",
+    "turnEnv",
     "gamma=",
     "networkGen=",
     "rlAgent=",
@@ -110,6 +111,9 @@ def main(argv):
 
         if option == "--fov":
             arguments["fov"] = int(argument)
+
+        if option == "--turnEnv":
+            arguments["turnEnv"] = True
 
         if option == "--gamma":
             arguments["gamma"] = float(argument)

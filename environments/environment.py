@@ -80,7 +80,7 @@ class Environment:
         return self.env_info.nb_free_tiles == np.sum(self.visited_tiles)
 
     def has_complete_coverage(self, n_pos):
-        if self.env_info.obstacle_map[n_pos] == 1:
+        if self.env_info.get_obstacle_map()[n_pos] == 1:
             return False
 
         nb_visited_tiles = np.sum(self.visited_tiles)

@@ -1,5 +1,6 @@
 import sys, getopt
 import numpy as np
+import math
 import pygame
 import torch
 
@@ -63,18 +64,27 @@ def state_to_surface(maps, nb_repeats, info):
     unscaled_img[info['position']] = np.array(COLORS["white"])
     if maps["obstacle_map"][info['position']] == 1.0:
         unscaled_img[info['position']] = np.array(COLORS["red"])
-    unscaled_img = np.moveaxis(unscaled_img, 0, 1)
+    # unscaled_img = np.moveaxis(unscaled_img, 0, 1)
 
     scaled_img = np.repeat(unscaled_img, nb_repeats[0], axis=0)
     scaled_img = np.repeat(scaled_img, nb_repeats[1], axis=1)
 
     surface = pygame.surfarray.make_surface(scaled_img)
+
     if "fov" in info:
         fov_points = np.array(info['fov'])
         fov_points[:, 0] *= nb_repeats[0]
         fov_points[:, 1] *= nb_repeats[1]
         fov_points[:, [0, 1]] = fov_points[:, [1, 0]]
         pygame.draw.lines(surface, color=(235, 245, 255), closed=True, points=fov_points)
+
+    if "rotation" in info:
+        curr_pos = info['position']
+        angle = info['rotation']
+        point_1 = ((curr_pos[0] + 0.5) * nb_repeats[0], (curr_pos[1] + 0.5) * nb_repeats[1])
+        point_2 = (point_1[0] - math.sin(angle) * nb_repeats[0],
+                   point_1[1] + math.cos(angle) * nb_repeats[1])
+        pygame.draw.line(surface, color=(0, 245, 255), start_pos=point_1, end_pos=point_2)
 
     return surface
 
@@ -161,10 +171,12 @@ def main(argv):
             maps["coverage_map"] = env.get_coverage_map()
             total_reward = 0.0
             done = False
+            print("NEW EPISODE")
         elif not done:
             action = agent.select_action(torch.tensor(current_state, dtype=torch.float), arguments["softmax"])
             n_state, n_reward, done, info = env.step(action)
             maps["coverage_map"] = env.get_coverage_map()
+            print(f"action: {action}")
         else:
             print("waiting for enter")
             n_reward = 0.0
