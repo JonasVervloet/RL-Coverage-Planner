@@ -30,29 +30,6 @@ COLORS = {
 }
 
 
-def state_to_image(state, nb_repeats):
-    _, m, n = state.shape
-
-    unscaled_img = np.zeros((m, n, 3))
-    unscaled_img[state[2].astype(bool)] = np.array(COLORS["coffee_brown"])
-    unscaled_img[state[1].astype(bool)] = np.array(COLORS["forest_green"])
-
-    if len(state) == 4:
-        terrain_map = np.stack([state[3], state[3], state[3]])
-        terrain_map = np.moveaxis(terrain_map, 0, -1)
-        terrain_colors = np.multiply(unscaled_img, terrain_map)
-        unscaled_img = 0.25 * unscaled_img + 0.75 * terrain_colors
-
-    unscaled_img[state[0].astype(bool)] = np.array(COLORS["white"])
-    unscaled_img[np.multiply(state[2].astype(bool), state[0].astype(bool))] = np.array(COLORS["red"])
-    unscaled_img = np.moveaxis(unscaled_img, 0, 1)
-
-    scaled_img = np.repeat(unscaled_img, nb_repeats[0], axis=0)
-    scaled_img = np.repeat(scaled_img, nb_repeats[1], axis=1)
-
-    return scaled_img
-
-
 def state_to_surface(maps, nb_repeats, info):
     dim_x, dim_y = maps["obstacle_map"].shape
 
