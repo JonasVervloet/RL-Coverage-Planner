@@ -68,39 +68,35 @@ class DeepRLTrainer:
 
                 current_state = n_state
 
-            if info["complete coverage"]:
+            if info["full_cc"]:
                 self.cc_counter += 1
                 print(f"COMPLETE COVERAGE: {self.cc_counter}")
 
-            self.total_rewards.append(info["total reward"])
-            self.nb_steps.append(info["nb steps"])
-            self.tiles_visited.append(info["nb visited tiles"])
+            self.total_rewards.append(info["total_reward"])
+            self.nb_steps.append(info["nb_steps"])
+            self.tiles_visited.append(info["nb_covered_tiles"])
             self.nb_complete_cov.append(self.cc_counter)
-            if self.env.gives_terrain_info():
-                self.terrain_diffs.append(info["total terrain diff"])
+            self.terrain_diffs.append(info["total_terr_diff"])
 
             if i < DeepRLTrainer.SAVE_EVERY:
                 self.avg_rewards.append(np.average(self.total_rewards))
                 self.avg_tiles_visited.append(np.average(self.tiles_visited))
                 self.avg_nb_steps.append(np.average(self.nb_steps))
-                if self.env.gives_terrain_info():
-                    self.avg_terrain_diffs.append(np.average(self.terrain_diffs))
+                self.avg_terrain_diffs.append(np.average(self.terrain_diffs))
             else:
                 self.avg_rewards.append(np.average(self.total_rewards[-DeepRLTrainer.SAVE_EVERY:]))
                 self.avg_tiles_visited.append(np.average(self.tiles_visited[-DeepRLTrainer.SAVE_EVERY:]))
                 self.avg_nb_steps.append(np.average(self.nb_steps[-DeepRLTrainer.SAVE_EVERY:]))
-                if self.env.gives_terrain_info():
-                    self.avg_terrain_diffs.append(np.average(self.terrain_diffs[-DeepRLTrainer.SAVE_EVERY:]))
+                self.avg_terrain_diffs.append(np.average(self.terrain_diffs[-DeepRLTrainer.SAVE_EVERY:]))
 
             episode_nb = i + 1
             if episode_nb % DeepRLTrainer.INFO_EVERY == 0:
                 print(f"Episode {episode_nb}")
-                print(f"total reward: {info['total reward']}")
-                print(f"nb steps: {info['nb steps']}")
-                print(f"tiles visited: {info['nb visited tiles']}")
+                print(f"total reward: {info['total_reward']}")
+                print(f"nb steps: {info['nb_steps']}")
+                print(f"tiles visited: {info['nb_covered_tiles']}")
                 print(f"epsilon: {self.agent.epsilon}")
-                if self.env.gives_terrain_info():
-                    print(f"total terrain diff: {info['total terrain diff']}")
+                print(f"total terrain diff: {info['total_terr_diff']}")
                 print()
 
             if episode_nb % DeepRLTrainer.SAVE_EVERY == 0:
@@ -137,14 +133,13 @@ class DeepRLTrainer:
                 plt.savefig(self.save_path + f"nb_complete_cov_episode{episode_nb}.png")
                 np.save(self.save_path + f"nb_complete_cov_episode{episode_nb}.npy", self.nb_complete_cov)
 
-                if self.env.gives_terrain_info():
-                    plt.clf()
-                    plt.plot(x, self.terrain_diffs, x, self.avg_terrain_diffs)
-                    plt.legend(['terrain differences', 'average terrain differences'])
-                    plt.title('Total terrain differences for every episode')
-                    plt.savefig(self.save_path + f"terrain_differences_episode{episode_nb}.png")
-                    np.save(self.save_path + f"terrain_diffs_episode{episode_nb}.npy", self.terrain_diffs)
-                    np.save(self.save_path + f"avg_terrain_diffs_episode{episode_nb}.npy", self.avg_terrain_diffs)
+                plt.clf()
+                plt.plot(x, self.terrain_diffs, x, self.avg_terrain_diffs)
+                plt.legend(['terrain differences', 'average terrain differences'])
+                plt.title('Total terrain differences for every episode')
+                plt.savefig(self.save_path + f"terrain_differences_episode{episode_nb}.png")
+                np.save(self.save_path + f"terrain_diffs_episode{episode_nb}.npy", self.terrain_diffs)
+                np.save(self.save_path + f"avg_terrain_diffs_episode{episode_nb}.npy", self.avg_terrain_diffs)
 
                 self.agent.save(self.save_path, episode_nb)
 

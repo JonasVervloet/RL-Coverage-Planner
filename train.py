@@ -14,30 +14,37 @@ from load import load_arguments, default_arguments, initialize_objects
 SHORT_OPTIONS = ""
 LONG_OPTIONS = [
     "loadArguments=",
-    "heightRequired",
+
+    "disableCuda",
+
     "dim=",
     "hFreq=",
     "oFreq=",
     "fillRatio=",
     "loadEnv=",
+
+    "agentSize=",
+    "fov=",
+    "turn",
+    "terrain",
+
     "movePunish=",
     "terrainPunish=",
     "obstaclePunish=",
     "discoverReward=",
     "coverageReward=",
     "maxStepMultiplier=",
-    "fov=",
-    "turnEnv",
+
     "gamma=",
     "networkGen=",
     "rlAgent=",
     "epsilonDecay=",
     "targetUpdate=",
     "optim=",
+
     "nbEpisodes=",
     "printEvery=",
     "saveEvery=",
-    "softmax=",
     "savePath="
 ]
 
@@ -68,8 +75,8 @@ def main(argv):
             argument_split = argument.split(",")
             arguments.update(load_arguments(argument_split[0], argument_split[1]))
 
-        if option == "--heightRequired":
-            arguments["heightRequired"] = True
+        if option == "--disableCuda":
+            arguments["cuda"] = False
 
         if option == "--dim":
             arguments["dim"] = tuple(tuple(map(int, argument.split(","))))
@@ -85,6 +92,18 @@ def main(argv):
 
         if option == "--loadEnv":
             arguments["loadEnv"] = tuple(argument.split(","))
+
+        if option == "--agentSize":
+            arguments["agentSize"] = int(argument)
+
+        if option == "--fov":
+            arguments["fov"] = int(argument)
+
+        if option == "--turn":
+            arguments["turn"] = True
+
+        if option == "--terrain":
+            arguments["terrain"] = True
 
         if option == "--movePunish":
             arguments["movePunish"] = float(argument)
@@ -103,12 +122,6 @@ def main(argv):
 
         if option == "--maxStepMultiplier":
             arguments["maxStepMultiplier"] = int(argument)
-
-        if option == "--fov":
-            arguments["fov"] = int(argument)
-
-        if option == "--turnEnv":
-            arguments["turnEnv"] = True
 
         if option == "--gamma":
             arguments["gamma"] = float(argument)
@@ -147,14 +160,6 @@ def main(argv):
         if option == "--saveEvery":
             arguments["saveEvery"] = int(argument)
 
-        if option == "--softmax":
-            if argument == "True":
-                arguments["softmax"] = True
-            elif argument == "False":
-                arguments["softmax"] = False
-            else:
-                raise Exception("TRAIN.py: softmax - invalid argument...")
-
         if option == "--savePath":
             arguments["savePath"] = argument
 
@@ -164,60 +169,6 @@ def main(argv):
     env, agent, trainer = initialize_objects(arguments, trainer_required=True)
 
     trainer.train()
-
-    # env_generator = EnvironmentGenerator(arguments["heightRequired"])
-    # print(f"dim: {arguments['dim']}")
-    # env_generator.set_dimension(arguments["dim"])
-    # env_generator.set_height_frequency(arguments["hFreq"])
-    # print(f"oFreq: {arguments['oFreq']}")
-    # env_generator.set_obstacle_frequency(arguments["oFreq"])
-    # print(f"fill ratio: {arguments['fillRatio']}")
-    # env_generator.set_fill_ration(arguments["fillRatio"])
-    #
-    # env = Environment(env_generator)
-    # if arguments["loadEnv"] is not None:
-    #     print("loading environment...")
-    #     env_repr = EnvironmentRepresentation()
-    #     env_repr.load(arguments["loadEnv"][0], arguments["loadEnv"][1])
-    #     arguments["dim"] = env_repr.get_dimension()
-    #     env.set_environment_representation(env_repr)
-    #
-    # print(f"single environment: {env.single_env}")
-    # print(f"terrain info: {env.gives_terrain_info()}")
-    #
-    # env.MOVE_PUNISHMENT = arguments["movePunish"]
-    # env.TERRAIN_PUNISHMENT = arguments["terrainPunish"]
-    # env.OBSTACLE_PUNISHMENT = arguments["obstaclePunish"]
-    # env.DISCOVER_REWARD = arguments["discoverReward"]
-    # env.COVERAGE_REWARD = arguments["coverageReward"]
-    # env.MAX_STEP_MULTIPLIER = arguments["maxStepMultiplier"]
-    #
-    # network_generator = GENERATORS[arguments["networkGen"]](
-    #     arguments["dim"],
-    #     env.get_input_depth(),
-    #     env.get_nb_actions()
-    # )
-    # optim_class = OPTIMIZERS[arguments["optim"]]
-    # print(f"agent class: {arguments['rlAgent']}")
-    # agent = AGENTS[arguments["rlAgent"]](
-    #     network_generator,
-    #     optim_class,
-    #     env.get_nb_actions()
-    # )
-    # agent.EPSILON_DECAY = arguments["epsilonDecay"]
-    # print(f"gamma: {arguments['gamma']}")
-    # agent.GAMMA = arguments["gamma"]
-    # print(f"target update: {arguments['targetUpdate']}")
-    # agent.TARGET_UPDATE = arguments["targetUpdate"]
-    #
-    # DeepRLTrainer.NB_EPISODES = arguments["nbEpisodes"]
-    # DeepRLTrainer.INFO_EVERY = arguments["printEvery"]
-    # DeepRLTrainer.SAVE_EVERY = arguments["saveEvery"]
-    # print(f"softmax: {arguments['softmax']}")
-    # DeepRLTrainer.SOFT_MAX = arguments["softmax"]
-    #
-    # trainer = DeepRLTrainer(env, agent, arguments["savePath"])
-    # trainer.train()
 
 
 if __name__ == "__main__":

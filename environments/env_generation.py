@@ -76,6 +76,7 @@ class EnvironmentGenerator:
 
 class GeneralEnvironmentGenerator:
     def __init__(self, n_dim):
+        self.dim = (8, 8)
         self.set_dimension(n_dim)
 
         self.obstacle_generator = ObstacleMapGenerator()
