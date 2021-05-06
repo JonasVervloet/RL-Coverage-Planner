@@ -25,6 +25,7 @@ class GeneralEnvironment:
 
         self.done = False
         self.nb_steps = 0
+        self.total_covered_tiles = 0
         self.total_reward = 0.0
         self.total_terr_diff = 0.0
 
@@ -95,6 +96,7 @@ class GeneralEnvironment:
 
         self.done = False
         self.nb_steps = 0
+        self.total_covered_tiles = 0
         self.total_reward = 0.0
         self.total_terr_diff = 0.0
 
@@ -144,6 +146,8 @@ class GeneralEnvironment:
                                  full_cc, terr_diff)
 
         self.done = done
+        self.nb_steps += 1
+        self.total_covered_tiles += nb_covered_tiles
         self.total_terr_diff += terr_diff
         self.total_reward += reward
 
@@ -366,9 +370,6 @@ class GeneralEnvironment:
         return reward
 
     def update_environment(self, action, n_position):
-        # update step counter
-        self.nb_steps += 1
-
         # change turning angle if turning is selected
         if self.turning:
             if action == 0:
@@ -512,6 +513,7 @@ class GeneralEnvironment:
             "current_position": self.current_position,
             "total_reward": self.total_reward,
             "total_terr_diff": self.total_terr_diff,
+            "total_covered_tiles": self.total_covered_tiles,
             "nb_steps": self.nb_steps,
             "agent_size": self.agent_size
         })

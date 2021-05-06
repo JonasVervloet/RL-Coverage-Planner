@@ -74,29 +74,24 @@ class DeepRLTrainer:
 
             self.total_rewards.append(info["total_reward"])
             self.nb_steps.append(info["nb_steps"])
-            self.tiles_visited.append(info["nb_covered_tiles"])
+            self.tiles_visited.append(info["total_covered_tiles"])
             self.nb_complete_cov.append(self.cc_counter)
             self.terrain_diffs.append(info["total_terr_diff"])
 
-            if i < DeepRLTrainer.SAVE_EVERY:
-                self.avg_rewards.append(np.average(self.total_rewards))
-                self.avg_tiles_visited.append(np.average(self.tiles_visited))
-                self.avg_nb_steps.append(np.average(self.nb_steps))
-                self.avg_terrain_diffs.append(np.average(self.terrain_diffs))
-            else:
-                self.avg_rewards.append(np.average(self.total_rewards[-DeepRLTrainer.SAVE_EVERY:]))
-                self.avg_tiles_visited.append(np.average(self.tiles_visited[-DeepRLTrainer.SAVE_EVERY:]))
-                self.avg_nb_steps.append(np.average(self.nb_steps[-DeepRLTrainer.SAVE_EVERY:]))
-                self.avg_terrain_diffs.append(np.average(self.terrain_diffs[-DeepRLTrainer.SAVE_EVERY:]))
+            avg_start = 0 if i  < DeepRLTrainer.SAVE_EVERY else -DeepRLTrainer.SAVE_EVERY
+            self.avg_rewards.append(np.average(self.total_rewards[avg_start:]))
+            self.avg_tiles_visited.append(np.average(self.tiles_visited[avg_start:]))
+            self.avg_nb_steps.append(np.average(self.nb_steps[avg_start:]))
+            self.avg_terrain_diffs.append(np.average(self.terrain_diffs[avg_start:]))
 
             episode_nb = i + 1
             if episode_nb % DeepRLTrainer.INFO_EVERY == 0:
                 print(f"Episode {episode_nb}")
-                print(f"total reward: {info['total_reward']}")
-                print(f"nb steps: {info['nb_steps']}")
-                print(f"tiles visited: {info['nb_covered_tiles']}")
+                print(f"average total reward: {self.avg_rewards[-1]}")
+                print(f"average nb steps: {self.avg_nb_steps[-1]}")
+                print(f"average nb tiles visited: {self.avg_tiles_visited[-1]}")
+                print(f"average terrain diff: {self.avg_terrain_diffs[-1]}")
                 print(f"epsilon: {self.agent.epsilon}")
-                print(f"total terrain diff: {info['total_terr_diff']}")
                 print()
 
             if episode_nb % DeepRLTrainer.SAVE_EVERY == 0:
