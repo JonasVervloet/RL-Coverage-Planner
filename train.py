@@ -1,11 +1,6 @@
 import sys, getopt
 import torch.optim as optim
 import json
-import pprint
-
-from environments.env_generation import EnvironmentGenerator
-from environments.env_representation import EnvironmentRepresentation
-from environments.environment import Environment
 
 from networks.simple_q_network import SimpleDeepQNetworkGenerator
 from networks.simple_q_network import SimpleDeepQNetworkGenerator2

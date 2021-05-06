@@ -14,6 +14,8 @@ class DeepRLTrainer:
 
     SOFT_MAX = False
 
+    DEVICE = 'cpu'
+
     def __init__(self, environment, agent, save_path):
         self.env = environment
         self.agent = agent
@@ -38,24 +40,31 @@ class DeepRLTrainer:
     def train(self):
         for i in range(DeepRLTrainer.NB_EPISODES):
 
-            current_state = torch.tensor(self.env.reset(), dtype=torch.float)
+            current_state = torch.tensor(self.env.reset(), dtype=torch.float,
+                                         device=DeepRLTrainer.DEVICE)
             done = False
             info = {}
 
             self.agent.update_epsilon(i)
 
             while not done:
-                action = self.agent.select_action(current_state, soft_max=DeepRLTrainer.SOFT_MAX)
+                action = self.agent.select_action(
+                    current_state, soft_max=DeepRLTrainer.SOFT_MAX
+                )
                 n_state, reward, done, info = self.env.step(action)
 
-                action = torch.tensor(action, dtype=torch.int64)
-                n_state = torch.tensor(n_state, dtype=torch.float)
-                reward = torch.tensor(reward, dtype=torch.float)
-                done = torch.tensor(done, dtype=torch.bool)
+                action = torch.tensor(action, dtype=torch.int64,
+                                      device=DeepRLTrainer.DEVICE)
+                n_state = torch.tensor(n_state, dtype=torch.float,
+                                       device=DeepRLTrainer.DEVICE)
+                reward = torch.tensor(reward, dtype=torch.float,
+                                      device=DeepRLTrainer.DEVICE)
+                done = torch.tensor(done, dtype=torch.bool,
+                                    device=DeepRLTrainer.DEVICE)
 
                 self.agent.observe_transition(Transition(
                     current_state, action, n_state, reward, done
-                ))
+                ), device=DeepRLTrainer.DEVICE)
 
                 current_state = n_state
 

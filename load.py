@@ -1,5 +1,6 @@
 import json
 import pprint
+import torch
 import torch.optim as optim
 
 from environments.env_generation import EnvironmentGenerator, SingleEnvironmentGenerator
@@ -102,10 +103,14 @@ def initialize_objects(args, trainer_required=False):
     env.COVERAGE_REWARD = arguments["coverageReward"]
     env.MAX_STEP_MULTIPLIER = arguments["maxStepMultiplier"]
 
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"DEVICE: {device}")
+
     network_generator = GENERATORS[arguments["networkGen"]](
         env.get_state_dimension(),
         env.get_input_depth() if arguments["inputMatch"] else arguments["agentInpDepth"],
-        env.get_nb_actions()
+        env.get_nb_actions(),
+        device
     )
     agent = AGENTS[arguments["rlAgent"]](
         network_generator,
@@ -123,6 +128,7 @@ def initialize_objects(args, trainer_required=False):
     DeepRLTrainer.INFO_EVERY = arguments["printEvery"]
     DeepRLTrainer.SAVE_EVERY = arguments["saveEvery"]
     DeepRLTrainer.SOFT_MAX = arguments["softmax"]
+    DeepRLTrainer.DEVICE = device
 
     trainer = DeepRLTrainer(env, agent, arguments["savePath"])
 

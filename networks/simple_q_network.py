@@ -22,13 +22,16 @@ class SimpleDeepQNetwork(nn.Module):
 
 
 class SimpleDeepQNetworkGenerator:
-    def __init__(self, dim, input_depth, nb_actions):
+    def __init__(self, dim, input_depth, nb_actions, device):
         self.dim = dim
         self.input_depth = input_depth
         self.nb_actions = nb_actions
+        self.device = device
 
     def generate_network(self):
-        return SimpleDeepQNetwork(self.dim, self.input_depth, self.nb_actions)
+        model = SimpleDeepQNetwork(self.dim, self.input_depth, self.nb_actions)
+        model.to(self.device)
+        return model
 
 
 class SimpleDeepQNetwork2(nn.Module):
@@ -53,13 +56,16 @@ class SimpleDeepQNetwork2(nn.Module):
 
 
 class SimpleDeepQNetworkGenerator2:
-    def __init__(self, dim, input_depth, nb_actions):
+    def __init__(self, dim, input_depth, nb_actions, device):
         self.dim = dim
         self.input_depth = input_depth
         self.nb_actions = nb_actions
+        self.device = device
 
     def generate_network(self):
-        return SimpleDeepQNetwork2(self.dim, self.input_depth, self.nb_actions)
+        model = SimpleDeepQNetwork2(self.dim, self.input_depth, self.nb_actions)
+        model.to(self.device)
+        return model
 
 
 if __name__ == "__main__":
