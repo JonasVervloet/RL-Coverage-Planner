@@ -7,9 +7,7 @@ from environments.noise_generation import NoiseGenerator
 class TerrainGenerator:
     def __init__(self):
         self.noise_generator = NoiseGenerator()
-
         self.noise_generator.dim = (16, 16)
-
 
     def set_dimension(self, n_dim):
         self.noise_generator.dim = n_dim

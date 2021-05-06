@@ -82,7 +82,7 @@ def initialize_objects(args, trainer_required=False):
         env_generator.set_dimension(arguments["dim"])
         env_generator.set_height_frequency(arguments["hFreq"])
         env_generator.set_obstacle_frequency(arguments["oFreq"])
-        env_generator.set_fill_ration(arguments["fillRatio"])
+        env_generator.set_fill_ratio(arguments["fillRatio"])
 
     if arguments["fov"] is not None and arguments["turnEnv"]:
         raise Exception("FOV and TurnEnvironment combination not yet supported!!")

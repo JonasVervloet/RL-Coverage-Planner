@@ -80,6 +80,48 @@ class EnvironmentRepresentation:
             self.nb_free_tiles = input_data['nb_free_tiles']
 
 
+class GeneralEnvironmentRepresentation:
+    def __init__(self, n_obstacle_map, nb_free_tiles, stat_positions,
+                 n_terrain_map, extra_spacing=0):
+        assert(n_obstacle_map.shape == n_terrain_map.shape)
+
+        self.extra_spacing = extra_spacing
+
+        self.obstacle_map = n_obstacle_map
+        self.nb_free_tiles = nb_free_tiles
+        self.start_positions = stat_positions
+
+        self.terrain_map = n_terrain_map
+
+    def get_nb_free_tiles(self):
+        return self.nb_free_tiles
+
+    def get_start_positions(self):
+        return self.start_positions
+
+    def get_obstacle_map(self, extra_spacing=0):
+        assert(extra_spacing <= self.extra_spacing)
+
+        offset = self.extra_spacing - extra_spacing
+        x_tot, y_tot = self.obstacle_map.shape
+
+        return self.obstacle_map[
+               offset:x_tot - offset,
+               offset:y_tot - offset
+        ]
+
+    def get_terrain_map(self, extra_spacing=0):
+        assert (extra_spacing <= self.extra_spacing)
+
+        offset = self.extra_spacing - extra_spacing
+        x_tot, y_tot = self.terrain_map.shape
+
+        return self.terrain_map[
+               offset:x_tot-offset,
+               offset:y_tot-offset
+        ]
+
+
 if __name__ == "__main__":
     save_path = "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/"
     name = "test_grid.npy"

@@ -142,7 +142,7 @@ obstacle_component = html.Div(
                 dcc.Dropdown(
                     id="obstacle_map_size",
                     options=[
-                        {'label': str(2*i), 'value': 2*i} for i in range(4, 11)
+                        {'label': str(2**i), 'value': 2**i} for i in range(3, 10)
                     ],
                     value=obstacle_gen.dim[0]
                 ),
