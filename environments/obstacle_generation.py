@@ -181,7 +181,6 @@ class ObstacleMapGenerator:
         offset  = agent_radius - 1
 
         for i, positions in enumerate(start_positions_list):
-            print(f"start positions {i}")
             position_set = set(positions)
 
             for position in start_positions:
@@ -200,7 +199,6 @@ class ObstacleMapGenerator:
                 position_set -= point_set
 
             if len(position_set) == 0:
-                print("BREAK")
                 break
             else:
                 nb_free_tiles -= len(position_set)
