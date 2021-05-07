@@ -76,7 +76,7 @@ class DeepRLTrainer:
             self.nb_steps.append(info["nb_steps"])
             self.tiles_visited.append(info["total_covered_tiles"])
             self.nb_complete_cov.append(self.cc_counter)
-            self.terrain_diffs.append(info["total_terr_diff"])
+            self.terrain_diffs.append(info["total_pos_terr_diff"])
 
             avg_start = 0 if i  < DeepRLTrainer.SAVE_EVERY else -DeepRLTrainer.SAVE_EVERY
             self.avg_rewards.append(np.average(self.total_rewards[avg_start:]))
@@ -90,7 +90,7 @@ class DeepRLTrainer:
                 print(f"average total reward: {self.avg_rewards[-1]}")
                 print(f"average nb steps: {self.avg_nb_steps[-1]}")
                 print(f"average nb tiles visited: {self.avg_tiles_visited[-1]}")
-                print(f"average terrain diff: {self.avg_terrain_diffs[-1]}")
+                print(f"average positive terrain diff: {self.avg_terrain_diffs[-1]}")
                 print(f"epsilon: {self.agent.epsilon}")
                 print()
 
