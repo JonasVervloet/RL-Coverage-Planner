@@ -136,4 +136,3 @@ data/
 plot_results.py
 plot_eval.py
 rotation_test.py
-env_test.py
