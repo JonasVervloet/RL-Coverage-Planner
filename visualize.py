@@ -77,6 +77,22 @@ def state_to_surface(maps, nb_repeats, info):
             [min_x, max_y]
         ]
 
+        if "angle" in info:
+            angle = info["angle"]
+
+            center_x = (curr_x + 0.5) * nb_repeats[0]
+            center_y = (curr_y + 0.5) * nb_repeats[1]
+
+            rel_points_x = points[:, 0] - center_x
+            rel_points_y = points[:, 1] - center_y
+
+            points_x = math.cos(angle) * rel_points_x - math.sin(angle) * rel_points_y + center_x
+            points_y = math.sin(angle) * rel_points_x + math.cos(angle) * rel_points_y + center_y
+
+            points = np.transpose(
+                np.stack([points_x, points_y])
+            )
+
         pygame.draw.lines(surface, color=(235, 245, 255),
                            closed=True, points=points)
 
@@ -186,12 +202,22 @@ def main(argv):
 
         for i in range(current_state.shape[0]):
             unscaled = current_state[i]
+            unscaled = np.array(unscaled * 255, dtype=int)
+            unscaled = np.stack([unscaled, unscaled, unscaled])
+            unscaled = np.moveaxis(unscaled, 0, 2)
 
             scaled_img = np.repeat(unscaled, state_repeats, axis=0)
             scaled_img = np.repeat(scaled_img, state_repeats, axis=1)
 
             surface = pygame.surfarray.make_surface(scaled_img)
             surface = pygame.transform.flip(surface, False, True)
+
+            pygame.draw.rect(
+                surface,
+                (255, 0, 0),
+                (0, 0, arguments["stateSize"], arguments["stateSize"]),
+                1
+            )
 
             screen.blit(surface, (i * arguments["stateSize"], arguments["visDim"][1]))
 

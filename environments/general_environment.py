@@ -9,7 +9,7 @@ class GeneralEnvironment:
 
     MOVE_PUNISH = 0.05
     OBSTACLE_PUNISH = 0.5
-    TERR_PUNISH = 0.05
+    TERR_PUNISH = 0.5
 
     DISC_REWARD = 1.0
     CC_REWARD = 50.0
@@ -28,6 +28,7 @@ class GeneralEnvironment:
         self.total_covered_tiles = 0
         self.total_reward = 0.0
         self.total_terr_diff = 0.0
+        self.total_pos_terr_diff = 0.0
 
         self.current_position = (0, 0)
         self.visited_tiles = []
@@ -68,11 +69,17 @@ class GeneralEnvironment:
 
     def get_extra_spacing(self):
         extra_spacing = self.agent_size // 2
-        if self.fov is not None:
+        if self.fov is not None and self.turning:
+            extra_fov = self.fov // 2
+            extra_turning = (self.fov - 1) // 5
+            extra_spacing = max(
+                extra_spacing, extra_fov + extra_turning
+            )
+        elif self.fov is not None:
             extra_spacing = max(
                 extra_spacing, self.fov // 2
             )
-        if self.turning:
+        elif self.turning:
             extra_spacing = max(
                 extra_spacing, (self.generator.get_dimension()[0] - 1) // 5
             )
@@ -99,6 +106,7 @@ class GeneralEnvironment:
         self.total_covered_tiles = 0
         self.total_reward = 0.0
         self.total_terr_diff = 0.0
+        self.total_pos_terr_diff = 0.0
 
         self.current_position = random.sample(
             self.env_repr.get_start_positions(), 1
@@ -149,6 +157,7 @@ class GeneralEnvironment:
         self.nb_steps += 1
         self.total_covered_tiles += nb_covered_tiles
         self.total_terr_diff += terr_diff
+        self.total_pos_terr_diff += max(0, terr_diff)
         self.total_reward += reward
 
         self.update_environment(action, n_position)
@@ -258,34 +267,30 @@ class GeneralEnvironment:
     def get_turned_local_map(self, size, center, type, angle):
         assert (type in ["obstacle", "terrain", "coverage"])
 
-        dim_x, dim_y = self.generator.get_dimension()
-        x = np.linspace(0.5, dim_x - 0.5, dim_x) - (dim_x / 2)
-        y = np.linspace(0.5, dim_x - 0.5, dim_x) - (dim_x / 2)
+        extra_space = self.get_extra_spacing()
 
-        offset = size // 2
-        extra = 1 if size % 2 == 1 else 0
-        x = x[center[0] - offset: center[0] + offset + extra]
-        y = y[center[1] - offset: center[1] + offset + extra]
+        x = np.linspace(0.5, size - 0.5, size) - (size / 2)
+        y = np.linspace(0.5, size - 0.5, size) - (size / 2)
 
         xx, yy = np.meshgrid(x, y)
         xx, yy = np.transpose(xx), np.transpose(yy)
 
-        xx_rot = math.cos(angle) * xx - math.sin(angle) * yy + (dim_x / 2)
-        yy_rot = math.sin(angle) * xx + math.cos(angle) * yy + (dim_y / 2)
+        xx_rot = math.cos(angle) * xx - math.sin(angle) * yy + center[0]
+        yy_rot = math.sin(angle) * xx + math.cos(angle) * yy + center[1]
 
-        xx_idxs = np.floor(xx_rot).astype(int) + self.get_extra_spacing()
-        yy_idxs = np.floor(yy_rot).astype(int) + self.get_extra_spacing()
+        xx_idxs = np.floor(xx_rot).astype(int) + extra_space
+        yy_idxs = np.floor(yy_rot).astype(int) + extra_space
 
         if type == "obstacle":
-            obstacle_map = self.env_repr.get_obstacle_map(self.get_extra_spacing())
+            obstacle_map = self.env_repr.get_obstacle_map(extra_space)
             return np.copy(obstacle_map[(xx_idxs, yy_idxs)])
 
         elif type == "terrain":
-            terrain_map = self.env_repr.get_terrain_map(self.get_extra_spacing())
+            terrain_map = self.env_repr.get_terrain_map(extra_space)
             return np.copy(terrain_map[(xx_idxs, yy_idxs)])
 
         elif type == "coverage":
-            extra_space = self.get_extra_spacing()
+            dim_x, dim_y = self.generator.get_dimension()
             n_dim_x, n_dim_y = (dim_x + 2 * extra_space,
                                 dim_y + 2 * extra_space)
             coverage_map = np.zeros((n_dim_x, n_dim_y))
@@ -363,9 +368,11 @@ class GeneralEnvironment:
         if full_cc:
             reward += GeneralEnvironment.CC_REWARD
 
-        # TODO: always add terrain difference punishment??
-        if self.turning:
-            reward -= GeneralEnvironment.TERR_PUNISH * terr_diff
+        # extra punishment for terrain difference
+        if self.terrain_info:
+            # only give terrain punishment for positive terrain differences
+            diff = max(0, terr_diff)
+            reward -= GeneralEnvironment.TERR_PUNISH * diff
 
         return reward
 
@@ -513,6 +520,7 @@ class GeneralEnvironment:
             "current_position": self.current_position,
             "total_reward": self.total_reward,
             "total_terr_diff": self.total_terr_diff,
+            "total_pos_terr_diff": self.total_pos_terr_diff,
             "total_covered_tiles": self.total_covered_tiles,
             "nb_steps": self.nb_steps,
             "agent_size": self.agent_size
