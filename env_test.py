@@ -86,19 +86,19 @@ def state_to_surface(maps, info, nb_repeats):
 
 
 # General Environment Generator
-env_dim = (16, 16)
+env_dim = (32, 32)
 obstacle_freq = (2, 2)
-fill_ratio = 0.20
+fill_ratio = 0.35
 
 generator = GeneralEnvironmentGenerator(env_dim)
 generator.set_obstacle_frequency(obstacle_freq)
 generator.set_fill_ratio(fill_ratio)
 
 # General Environment
-agent_size = 3
+agent_size = 7
 fov = None
-turning = True
-terrain_info = True
+turning = False
+terrain_info = False
 
 env = GeneralEnvironment(generator)
 env.set_agent_size(agent_size)

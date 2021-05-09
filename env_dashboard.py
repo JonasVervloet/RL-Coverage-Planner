@@ -162,6 +162,14 @@ obstacle_component = html.Div(
                     ],
                     value=obstacle_gen.noise_generator.res[1]
                 ),
+                html.Span("agent size"),
+                dcc.Dropdown(
+                    id="agent_size",
+                    options=[
+                        {'label': str(2 * i + 1), 'value': 2 * i + 1} for i in range(5)
+                    ],
+                    value=1
+                ),
                 html.Span("fill ratio"),
                 dcc.Slider(
                     id='obstacle_fill_ratio',
@@ -203,9 +211,10 @@ obstacle_component = html.Div(
     Input(component_id="obstacle_map_size", component_property="value"),
     Input(component_id="obstacle_map_freq_x", component_property="value"),
     Input(component_id="obstacle_map_freq_y", component_property="value"),
+    Input(component_id="agent_size", component_property="value"),
     Input(component_id="obstacle_fill_ratio", component_property="drag_value")
 )
-def update_terrain_map(n_clicks, size, freq_x, freq_y, fill_ratio):
+def update_terrain_map(n_clicks, size, freq_x, freq_y, agent_size, fill_ratio):
     if size is not None:
         obstacle_gen.set_dimension((size, size))
     if freq_x is not None and freq_y is not None:
@@ -213,15 +222,15 @@ def update_terrain_map(n_clicks, size, freq_x, freq_y, fill_ratio):
     if fill_ratio is not None:
         obstacle_gen.fill_ratio = fill_ratio
 
-    obstacle_features = obstacle_gen.generate_obstacle_map()
+    obstacle_features = obstacle_gen.generate_obstacle_map((agent_size + 1) // 2)
     obstacle_dict["map"] = obstacle_features[0]
     obstacle_dict["free_tiles"] = obstacle_features[1]
     obstacle_dict["start_pos"] = obstacle_features[2]
 
     ### uncomment to show start positions
-    # obst_map = obstacle_dict["map"]
-    # list1 , list2 = zip(*obstacle_dict["start_pos"])
-    # obst_map[(list1, list2)] = 0.5
+    obst_map = obstacle_dict["map"]
+    list1 , list2 = zip(*obstacle_dict["start_pos"])
+    obst_map[(list1, list2)] = 0.5
 
     return px.imshow(obstacle_dict["map"]), f"nb free tiles: {obstacle_dict['free_tiles']}"
 

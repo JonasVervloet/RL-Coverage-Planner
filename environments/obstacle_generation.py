@@ -169,7 +169,9 @@ class ObstacleMapGenerator:
     def adapt_obstacle_map(map, nb_free_tiles, agent_radius=1):
         new_map = np.copy(map)
 
-        start_positions, start_positions_list = ObstacleMapGenerator.get_start_positions(map, agent_radius)
+        (start_positions,
+         start_positions_list,
+         nb_free_tiles) = ObstacleMapGenerator.get_start_positions(new_map, nb_free_tiles, agent_radius)
 
         x = np.arange(0, map.shape[0])
         y = np.arange(0, map.shape[1])
@@ -208,26 +210,50 @@ class ObstacleMapGenerator:
         return new_map, start_positions, nb_free_tiles
 
     @staticmethod
-    def get_start_positions(map, agent_radius=1):
-        obstacle_map_copy = np.copy(map)
+    def get_start_positions(map, nb_free_tiles, agent_radius=1):
+        done = False
+
         start_positions_list = []
         start_positions = []
-        for i in range(agent_radius):
-            positions = []
-            corners_incl = ObstacleMapGenerator.CORNERS_INCL[i] if not i == agent_radius - 1 else False
-            obstacle_regions_copy, cover_regions_copy = ObstacleMapGenerator.flood_map(
-                obstacle_map_copy, corners_incl
-            )
-            for region in cover_regions_copy:
-                ObstacleMapGenerator.change_region_value(
-                    obstacle_map_copy, region, 1.0, border_only=True
+
+        while not done:
+            obstacle_map_copy = np.copy(map)
+            start_positions_list = []
+            start_positions = []
+
+            for i in range(agent_radius):
+                corners_incl = ObstacleMapGenerator.CORNERS_INCL[i] if not i == agent_radius - 1 else False
+                obstacle_regions_copy, cover_regions_copy = ObstacleMapGenerator.flood_map(
+                    obstacle_map_copy, corners_incl
                 )
-                positions += region[2]
 
-            start_positions_list.append(positions)
-            start_positions = positions
+                max_size = 0
+                max_index = 0
+                for idx, region in enumerate(cover_regions_copy):
+                    if region[1] > max_size:
+                        max_size = region[1]
+                        max_index = idx
 
-        return start_positions, start_positions_list
+                max_region = cover_regions_copy.pop(max_index)
+                ObstacleMapGenerator.change_region_value(obstacle_map_copy, max_region, 1, border_only=True)
+                for region in cover_regions_copy:
+                    nb_free_tiles -= region[1]
+                    ObstacleMapGenerator.change_region_value(map, region, 1)
+                    ObstacleMapGenerator.change_region_value(obstacle_map_copy, region, 1)
+
+                if len(cover_regions_copy) >= 1:
+                    print(f"COVER REGION LENGTH > 1!")
+                    print(f"length: {len(cover_regions_copy) + 1}")
+                    print(f"radius: {i + 1}")
+                    break
+                elif i == agent_radius - 1:
+                    print("DONE")
+                    done = True
+
+                start_positions_list.append(max_region[2])
+                start_positions = max_region[2]
+
+        return start_positions, start_positions_list, nb_free_tiles
 
     @staticmethod
     def get_radius_map(agent_radius):
