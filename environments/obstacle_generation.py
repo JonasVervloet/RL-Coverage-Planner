@@ -242,12 +242,8 @@ class ObstacleMapGenerator:
                     ObstacleMapGenerator.change_region_value(obstacle_map_copy, region, 1)
 
                 if len(cover_regions_copy) >= 1:
-                    print(f"COVER REGION LENGTH > 1!")
-                    print(f"length: {len(cover_regions_copy) + 1}")
-                    print(f"radius: {i + 1}")
                     break
                 elif i == agent_radius - 1:
-                    print("DONE")
                     done = True
 
                 start_positions_list.append(max_region[2])
@@ -282,7 +278,7 @@ if __name__ == "__main__":
 
     map1 = np.copy(obst_map)
     for radius in range(1, 7):
-        positions, _ = ObstacleMapGenerator.get_start_positions(
+        positions, _, _ = ObstacleMapGenerator.get_start_positions(
             obst_map, radius
         )
         print(f"radius {radius}: {len(positions)} start positions")
@@ -297,7 +293,7 @@ if __name__ == "__main__":
 
     map2 = np.copy(obst_map)
     for radius in range(6, 0, -1):
-        positions, _ = ObstacleMapGenerator.get_start_positions(
+        positions, _, _ = ObstacleMapGenerator.get_start_positions(
             obst_map, radius
         )
         print(f"radius {radius}: {len(positions)} start positions")
