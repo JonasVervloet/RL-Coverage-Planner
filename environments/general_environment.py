@@ -71,7 +71,7 @@ class GeneralEnvironment:
         extra_spacing = self.agent_size // 2
         if self.fov is not None and self.turning:
             extra_fov = self.fov // 2
-            extra_turning = (self.fov - 1) // 5
+            extra_turning = (self.fov - 1) // 5 + 1
             extra_spacing = max(
                 extra_spacing, extra_fov + extra_turning
             )
@@ -81,7 +81,7 @@ class GeneralEnvironment:
             )
         elif self.turning:
             extra_spacing = max(
-                extra_spacing, (self.generator.get_dimension()[0] - 1) // 5
+                extra_spacing, (self.generator.get_dimension()[0] - 1) // 5 + 1
             )
         return extra_spacing
 
@@ -471,8 +471,8 @@ class GeneralEnvironment:
             rot_pos_y = -rel_pos_x * math.sin(angle) + rel_pos_y * math.cos(angle)
 
             curr_pos_map[
-                math.floor(rot_pos_x + dim_x / 2),
-                math.floor(rot_pos_y + dim_x / 2)
+                np.clip(math.floor(rot_pos_x + dim_x / 2), 0, dim_x - 1),
+                np.clip(math.floor(rot_pos_y + dim_y / 2), 0, dim_y - 1)
             ] = 1.0
 
             state = np.stack([curr_pos_map, coverage_map, obstacle_map])
