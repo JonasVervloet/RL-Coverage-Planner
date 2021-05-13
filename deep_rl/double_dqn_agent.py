@@ -64,7 +64,7 @@ class DoubleDeepQAgent:
     def evaluate(self):
         self.epsilon = 0.0
 
-    def observe_transition(self, transition):
+    def observe_transition(self, transition, device):
         self.replay_buffer.append(transition)
 
         if len(self.replay_buffer) <= self.batch_size * 10:
@@ -81,7 +81,7 @@ class DoubleDeepQAgent:
         non_final_mask = ~torch.stack(mini_batch.done)
 
         state_action_values = self.policy_net(state_batch).gather(1, action_batch)
-        next_state_values = torch.zeros(self.batch_size)
+        next_state_values = torch.zeros(self.batch_size, device=device)
         next_state_actions = torch.argmax(self.policy_net(next_state_batch), dim=1)
         next_state_values[non_final_mask] = self.target_net(next_state_batch)[
             torch.arange(self.batch_size), next_state_actions
