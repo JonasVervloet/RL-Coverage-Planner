@@ -40,6 +40,7 @@ LONG_OPTIONS = [
     "rlAgent=",
     "epsilonDecay=",
     "targetUpdate=",
+    "queueLength=",
     "optim=",
 
     "nbEpisodes=",
@@ -150,6 +151,9 @@ def main(argv):
 
         if option == "--targetUpdate":
             arguments["targetUpdate"] = int(argument)
+
+        if option == "--queueLength":
+            arguments["queueLength"] = int(argument)
 
         if option == "--nbEpisodes":
             arguments["nbEpisodes"] = int(argument)

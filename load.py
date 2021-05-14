@@ -44,6 +44,7 @@ DEFAULT_ARGUMENTS = {
     "gamma": 0.9,
     "epsilonDecay": 2000,
     "targetUpdate": 1000,
+    "queueLength": 5000,
 
     "nbEpisodes": 2000,
     "printEvery": 50,
@@ -133,6 +134,7 @@ def initialize_objects(args, trainer_required=False):
     agent_class.EPSILON_DECAY = arguments["epsilonDecay"]
     agent_class.GAMMA = arguments["gamma"]
     agent_class.TARGET_UPDATE = arguments["targetUpdate"]
+    agent_class.QUEUE_LENGTH = arguments["queueLength"]
 
     agent = agent_class(
         network_generator,
