@@ -97,7 +97,7 @@ generator.set_fill_ratio(fill_ratio)
 # General Environment
 agent_size = 1
 fov = None
-turning = True
+turning = False
 terrain_info = False
 
 env = GeneralEnvironment(generator)
@@ -187,10 +187,12 @@ while running:
                     print(f"TOTAL POSS TERR DIFF: {info['total_pos_terr_diff']}")
                 if info['done']:
                     print("DONE")
-                if (info['collision']):
+                if info['collision']:
                     print(f"COLLISION: {info['collision']}")
-                if (info['full_cc']):
+                if info['full_cc']:
                     print(f"FULL CC: {info['full_cc']}")
+                if info['loop']:
+                    print(f"LOOP: {info['loop']}")
 
 
     env_surface = state_to_surface(maps, info, nb_repeats)

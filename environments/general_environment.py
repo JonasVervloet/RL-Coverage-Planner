@@ -1,10 +1,10 @@
 import numpy as np
 import math
 import random
+from collections import deque
 
 
 class GeneralEnvironment:
-
     MAX_STEP_MULTIPLIER = 2
 
     MOVE_PUNISH = 0.05
@@ -35,13 +35,15 @@ class GeneralEnvironment:
 
         self.angle_count = 0
 
+        self.action_buffer = deque(maxlen=2)
+
     def set_agent_size(self, n_size):
-        assert(n_size >= 1)
+        assert (n_size >= 1)
 
         self.agent_size = n_size
 
     def set_field_of_view(self, n_fov):
-        assert(n_fov is None or (n_fov >= 1 and n_fov % 2 == 1))
+        assert (n_fov is None or (n_fov >= 1 and n_fov % 2 == 1))
 
         self.fov = n_fov
 
@@ -124,13 +126,15 @@ class GeneralEnvironment:
         yy_select = yy[mask]
         self.visited_tiles[(xx_select, yy_select)] = 1
 
+        self.action_buffer = deque(maxlen=2)
+
         if self.turning:
             self.set_random_angle_count()
 
         return self.get_state()
 
     def set_random_angle_count(self):
-        assert(self.turning)
+        assert (self.turning)
 
         self.angle_count = np.random.randint(0, 8)
         collision = True
@@ -148,8 +152,9 @@ class GeneralEnvironment:
         terr_diff = self.get_terrain_difference(n_position)
 
         full_cc = self.complete_coverage(nb_covered_tiles)
+        loop = self.detect_loop(action)
 
-        done = self.get_done_status(collision, full_cc)
+        done = self.get_done_status(collision, full_cc, loop)
         reward = self.get_reward(collision, nb_covered_tiles,
                                  full_cc, terr_diff)
 
@@ -168,6 +173,7 @@ class GeneralEnvironment:
             "nb_covered_tiles": nb_covered_tiles,
             "terr_diff": terr_diff,
             "full_cc": full_cc,
+            "loop": loop,
             "done": done,
             "reward": reward
         })
@@ -175,7 +181,7 @@ class GeneralEnvironment:
         return state, reward, done, info
 
     def get_new_position(self, action):
-        assert(action < self.get_nb_actions())
+        assert (action < self.get_nb_actions())
 
         n_position = self.current_position
         if not self.turning:
@@ -221,7 +227,7 @@ class GeneralEnvironment:
         return n_position
 
     def get_local_map(self, size, position, type, copy=True):
-        assert(type in ["obstacle", "terrain", "coverage", "indices"])
+        assert (type in ["obstacle", "terrain", "coverage", "indices"])
 
         offset = size // 2
         extra = 1 if size % 2 == 1 else 0
@@ -253,12 +259,12 @@ class GeneralEnvironment:
             dim_x, dim_y = self.generator.get_dimension()
             n_dim_x, n_dim_y = (dim_x + 2 * offset, dim_y + 2 * offset)
             map = np.zeros((n_dim_x, n_dim_y))
-            map[offset:n_dim_x-offset, offset:n_dim_y-offset] = self.visited_tiles
+            map[offset:n_dim_x - offset, offset:n_dim_y - offset] = self.visited_tiles
 
         selection = map[
                     x_pos - offset: x_pos + offset + extra,
                     y_pos - offset: y_pos + offset + extra
-        ]
+                    ]
         if copy:
             return np.copy(selection)
 
@@ -295,8 +301,8 @@ class GeneralEnvironment:
                                 dim_y + 2 * extra_space)
             coverage_map = np.zeros((n_dim_x, n_dim_y))
             coverage_map[
-                extra_space:n_dim_x - extra_space,
-                extra_space:n_dim_y - extra_space
+            extra_space:n_dim_x - extra_space,
+            extra_space:n_dim_y - extra_space
             ] = self.visited_tiles
             return np.copy(coverage_map[(xx_idxs, yy_idxs)])
 
@@ -331,18 +337,44 @@ class GeneralEnvironment:
 
         return False
 
+    def detect_loop(self, action):
+        if len(self.action_buffer) < 2:
+            return False
+        if self.turning:
+            if (action == 0 and self.action_buffer[0] == 0
+                    and self.action_buffer[1] == 2):
+                return True
+            if (action == 2 and self.action_buffer[0] == 2
+                    and self.action_buffer[1] == 0):
+                return True
+        else:
+            if self.action_buffer[0] == action:
+                if action == 0 and self.action_buffer[1] == 1:
+                    return True
+                if action == 1 and self.action_buffer[1] == 0:
+                    return True
+                if action == 2 and self.action_buffer[1] == 3:
+                    return True
+                if action == 3 and self.action_buffer[1] == 2:
+                    return True
+        return False
+
     def get_terrain_difference(self, n_position):
         curr_height = self.env_repr.get_terrain_map()[self.current_position]
         n_height = self.env_repr.get_terrain_map()[n_position]
         return n_height - curr_height
 
-    def get_done_status(self, collision, full_cc):
+    def get_done_status(self, collision, full_cc, loop):
         # Terminate on collision with obstacle
         if collision:
             return True
 
         # Terminate when the agent has covered the full environment
         if full_cc:
+            return True
+
+        # Terminate when agent ends up in a loop
+        if loop:
             return True
 
         # Terminate when the agent has done too many steps
@@ -404,6 +436,8 @@ class GeneralEnvironment:
 
         # update position
         self.current_position = n_position
+
+        self.action_buffer.append(action)
 
     def get_state(self):
         # both FOV and turning are not active
@@ -537,10 +571,10 @@ class GeneralEnvironment:
 
     @staticmethod
     def get_radius_map(agent_size):
-        x = np.linspace(0.5, agent_size - 0.5, agent_size) - (agent_size/2)
+        x = np.linspace(0.5, agent_size - 0.5, agent_size) - (agent_size / 2)
         yy, xx = np.meshgrid(x, x)
 
-        dists = np.sqrt(xx**2 + yy**2)
-        mask = dists <= (agent_size/2)
+        dists = np.sqrt(xx ** 2 + yy ** 2)
+        mask = dists <= (agent_size / 2)
 
         return mask
