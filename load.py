@@ -40,6 +40,7 @@ DEFAULT_ARGUMENTS = {
     "inputMatch": True,
     "agentInpDepth": 3,
     "optim": "rmsProp",
+    "lr": 0.01,
     "gamma": 0.9,
     "epsilonDecay": 2000,
     "targetUpdate": 1000,
@@ -136,6 +137,7 @@ def initialize_objects(args, trainer_required=False):
     agent_class.GAMMA = arguments["gamma"]
     agent_class.TARGET_UPDATE = arguments["targetUpdate"]
     agent_class.QUEUE_LENGTH = arguments["queueLength"]
+    agent_class.LEARNING_RATE = arguments["lr"]
 
     agent = agent_class(
         network_generator,

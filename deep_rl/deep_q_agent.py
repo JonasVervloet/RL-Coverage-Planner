@@ -19,6 +19,8 @@ class DeepQAgent:
 
     BATCH_SIZE = 32
 
+    LEARNING_RATE = 0.01
+
     def __init__(self, network_generator, optim_class, nb_actions):
         self.policy_net = network_generator.generate_network()
         self.target_net = network_generator.generate_network()
@@ -27,7 +29,7 @@ class DeepQAgent:
 
         self.replay_buffer = deque(maxlen=DeepQAgent.QUEUE_LENGTH)
         self.epsilon = DeepQAgent.EPSILON_START
-        self.optimizer = optim_class(self.policy_net.parameters())
+        self.optimizer = optim_class(self.policy_net.parameters(), lr=DeepQAgent.LEARNING_RATE)
         self.batch_size = DeepQAgent.BATCH_SIZE
 
         self.step_counter = 1

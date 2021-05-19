@@ -45,6 +45,7 @@ LONG_OPTIONS = [
     "targetUpdate=",
     "queueLength=",
     "optim=",
+    "lr=",
 
     "nbEpisodes=",
     "printEvery=",
@@ -149,6 +150,9 @@ def main(argv):
                 arguments["optim"] = argument
             else:
                 raise Exception("TRAIN.py: given optimizer is not defined...")
+
+        if option == "--lr":
+            arguments["lr"] = float(argument)
 
         if option == "--rlAgent":
             if argument in AGENTS:
