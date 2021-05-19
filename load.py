@@ -1,5 +1,4 @@
 import json
-import pprint
 import torch
 import torch.optim as optim
 
@@ -46,6 +45,10 @@ DEFAULT_ARGUMENTS = {
     "targetUpdate": 1000,
     "queueLength": 5000,
 
+    "loadEpisode": None,
+    "loadPath": "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/test/",
+    "loadings": [],
+
     "nbEpisodes": 2000,
     "printEvery": 50,
     "saveEvery": 250,
@@ -82,8 +85,6 @@ def initialize_objects(args, trainer_required=False):
     arguments.update(args)
 
     print("Initializing objects...")
-    print("ARGUMENTS:")
-    pprint.pprint(arguments)
 
     # CUDA
     device = 'cuda' if torch.cuda.is_available() and arguments["cuda"] else 'cpu'
@@ -142,6 +143,10 @@ def initialize_objects(args, trainer_required=False):
         environment.get_nb_actions()
     )
 
+    if  arguments['loadEpisode'] is not None:
+        agent.load(arguments['loadPath'], arguments['loadEpisode'])
+        arguments['loadings'].append(arguments['loadEpisode'])
+
     if not trainer_required:
         return environment, agent
 
@@ -159,8 +164,6 @@ def initialize_objects(args, trainer_required=False):
 if __name__ == "__main__":
     path = "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/8x_terrain/trial_3/"
     arguments = load_arguments(path, "arguments")
-
-    pprint.pprint(arguments)
 
     env, agent = initialize_objects(arguments)
 

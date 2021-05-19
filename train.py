@@ -1,5 +1,6 @@
 import sys, getopt
 import torch.optim as optim
+import pprint
 import json
 
 from networks.simple_q_network import SimpleDeepQNetworkGenerator
@@ -13,6 +14,8 @@ from load import load_arguments, default_arguments, initialize_objects
 
 SHORT_OPTIONS = ""
 LONG_OPTIONS = [
+    "loadAgent=",
+    
     "loadArguments=",
 
     "disableCuda",
@@ -63,6 +66,7 @@ OPTIMIZERS = {
     "rmsProp": optim.RMSprop
 }
 
+
 def main(argv):
     try:
         options, args = getopt.getopt(argv, SHORT_OPTIONS, LONG_OPTIONS)
@@ -72,6 +76,12 @@ def main(argv):
     arguments = default_arguments()
 
     for option, argument in options:
+        if option == "--loadAgent":
+            argument_split = argument.split(",")
+            arguments.update(load_arguments(argument_split[0], "arguments"))
+            arguments["loadPath"] = argument_split[0]
+            arguments["loadEpisode"] = int(argument_split[1])
+
         if option == "--loadArguments":
             argument_split = argument.split(",")
             arguments.update(load_arguments(argument_split[0], argument_split[1]))
@@ -167,10 +177,13 @@ def main(argv):
         if option == "--savePath":
             arguments["savePath"] = argument
 
+    env, agent, trainer = initialize_objects(arguments, trainer_required=True)
+
     with open(f"{arguments['savePath']}arguments.txt", 'w') as output_file:
         json.dump(arguments, output_file)
 
-    env, agent, trainer = initialize_objects(arguments, trainer_required=True)
+    print("ARGUMENTS:")
+    pprint.pprint(arguments)
 
     trainer.train()
 
