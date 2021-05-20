@@ -14,6 +14,8 @@ class GeneralEnvironment:
     DISC_REWARD = 1.0
     CC_REWARD = 50.0
 
+    ACTION_BUFFER_LENGTH = 10
+
     def __init__(self, generator):
         self.agent_size = 1
         self.fov = None
@@ -35,7 +37,7 @@ class GeneralEnvironment:
 
         self.angle_count = 0
 
-        self.action_buffer = deque(maxlen=2)
+        self.action_buffer = deque(maxlen=GeneralEnvironment.ACTION_BUFFER_LENGTH)
 
     def set_agent_size(self, n_size):
         assert (n_size >= 1)
@@ -105,7 +107,6 @@ class GeneralEnvironment:
 
         self.done = False
         self.nb_steps = 0
-        self.total_covered_tiles = 0
         self.total_reward = 0.0
         self.total_terr_diff = 0.0
         self.total_pos_terr_diff = 0.0
@@ -125,8 +126,9 @@ class GeneralEnvironment:
         xx_select = xx[mask]
         yy_select = yy[mask]
         self.visited_tiles[(xx_select, yy_select)] = 1
+        self.total_covered_tiles = sum(self.visited_tiles)
 
-        self.action_buffer = deque(maxlen=2)
+        self.action_buffer = deque(maxlen=GeneralEnvironment.ACTION_BUFFER_LENGTH)
 
         if self.turning:
             self.set_random_angle_count()
@@ -338,25 +340,44 @@ class GeneralEnvironment:
         return False
 
     def detect_loop(self, action):
-        if len(self.action_buffer) < 2:
+        # check if action buffer contains sufficient actions
+        if len(self.action_buffer) < GeneralEnvironment.ACTION_BUFFER_LENGTH:
             return False
+
+        # check if all even actions are the same (otherwise there is no loop)
+        even_idxs = np.arange(0, GeneralEnvironment.ACTION_BUFFER_LENGTH, 2)
+        even_actions = np.array(self.action_buffer)[even_idxs]
+        if not sum(abs(even_actions - even_actions[0])) == 0:
+            return False
+
+        # check if all odd actions are the same (otherwise there is no loop)
+        odd_idxs = even_idxs + 1
+        odd_actions = np.array(self.action_buffer)[odd_idxs]
+        if not sum(abs(odd_actions - odd_actions[0])) == 0:
+            return False
+
+        # check that the new action is still part of the loop
+        if not action == self.action_buffer[0]:
+            return False
+
+        # check if the recurrent actions are opposite actions
+        # (meaning that a loop is occurring)
         if self.turning:
-            if (action == 0 and self.action_buffer[0] == 0
-                    and self.action_buffer[1] == 2):
+            if action == 0 and self.action_buffer[1] == 2:
                 return True
-            if (action == 2 and self.action_buffer[0] == 2
-                    and self.action_buffer[1] == 0):
+            if action == 2 and self.action_buffer[1] == 0:
                 return True
         else:
-            if self.action_buffer[0] == action:
-                if action == 0 and self.action_buffer[1] == 1:
-                    return True
-                if action == 1 and self.action_buffer[1] == 0:
-                    return True
-                if action == 2 and self.action_buffer[1] == 3:
-                    return True
-                if action == 3 and self.action_buffer[1] == 2:
-                    return True
+            if action == 0 and self.action_buffer[1] == 1:
+                return True
+            if action == 1 and self.action_buffer[1] == 0:
+                return True
+            if action == 2 and self.action_buffer[1] == 3:
+                return True
+            if action == 3 and self.action_buffer[1] == 2:
+                return True
+
+        # if all the previous does not hold, then no looping is occuring
         return False
 
     def get_terrain_difference(self, n_position):

@@ -97,7 +97,7 @@ generator.set_fill_ratio(fill_ratio)
 # General Environment
 agent_size = 1
 fov = None
-turning = False
+turning = True
 terrain_info = False
 
 env = GeneralEnvironment(generator)
