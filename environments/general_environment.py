@@ -126,7 +126,7 @@ class GeneralEnvironment:
         xx_select = xx[mask]
         yy_select = yy[mask]
         self.visited_tiles[(xx_select, yy_select)] = 1
-        self.total_covered_tiles = sum(self.visited_tiles)
+        self.total_covered_tiles = np.sum(self.visited_tiles)
 
         self.action_buffer = deque(maxlen=GeneralEnvironment.ACTION_BUFFER_LENGTH)
 
@@ -136,7 +136,7 @@ class GeneralEnvironment:
         return self.get_state()
 
     def set_random_angle_count(self):
-        assert (self.turning)
+        assert self.turning
 
         self.angle_count = np.random.randint(0, 8)
         collision = True

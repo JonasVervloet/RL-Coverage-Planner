@@ -7,6 +7,7 @@ from environments.env_generation import GeneralEnvironmentGenerator
 from environments.environment import Environment, EnvironmentFOV
 from environments.turn_environment import SimpleTurnEnvironment
 from environments.general_environment import GeneralEnvironment
+from environments.env_representation import GeneralEnvironmentRepresentation
 
 from networks.simple_q_network import SimpleDeepQNetworkGenerator
 from networks.simple_q_network import SimpleDeepQNetworkGenerator2
@@ -97,10 +98,16 @@ def initialize_objects(args, trainer_required=False):
     env_generator.set_fill_ratio(arguments["fillRatio"])
     env_generator.set_height_frequency(arguments["hFreq"])
 
+    # load an environment
     if arguments["loadEnv"] is not None:
-        print("NOT SUPPORTED YET!!")
-        # env_generator = SingleEnvironmentGenerator(arguments["loadEnv"])
-        # arguments["dim"] = env_generator.get_dimension()
+        env_repr = env_generator.generate_environment()
+
+        path, name = arguments["loadEnv"]
+        env_repr.load(path, name)
+
+        env_generator.load_env_representation(env_repr)
+
+        arguments["dim"] = env_generator.get_dimension()
 
     # ENVIRONMENT
     # environment characteristics

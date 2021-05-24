@@ -8,7 +8,6 @@ from networks.simple_q_network import SimpleDeepQNetworkGenerator2
 
 from deep_rl.deep_q_agent import DeepQAgent
 from deep_rl.double_dqn_agent import DoubleDeepQAgent
-from deep_rl.trainer import DeepRLTrainer
 
 from load import load_arguments, default_arguments, initialize_objects
 

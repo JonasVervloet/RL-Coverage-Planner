@@ -4,6 +4,7 @@ import pygame
 
 from environments.general_environment import GeneralEnvironment
 from environments.env_generation import GeneralEnvironmentGenerator
+from environments.env_representation import GeneralEnvironmentRepresentation
 
 
 def state_to_surface(maps, info, nb_repeats):
@@ -93,6 +94,15 @@ fill_ratio = 0.20
 generator = GeneralEnvironmentGenerator(env_dim)
 generator.set_obstacle_frequency(obstacle_freq)
 generator.set_fill_ratio(fill_ratio)
+
+load = False
+load_path = "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/MAPS/"
+name = "test_map"
+
+if load:
+    env_repr = generator.generate_environment()
+    env_repr.load(load_path, name)
+    generator.load_env_representation(env_repr)
 
 # General Environment
 agent_size = 1

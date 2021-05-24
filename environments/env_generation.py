@@ -82,6 +82,8 @@ class GeneralEnvironmentGenerator:
         self.obstacle_generator = ObstacleMapGenerator()
         self.terrain_generator = TerrainGenerator()
 
+        self.loaded_representation = None
+
     def get_dimension(self):
         return self.dim
 
@@ -99,12 +101,55 @@ class GeneralEnvironmentGenerator:
     def set_height_frequency(self, n_freq):
         self.terrain_generator.set_frequency(n_freq)
 
+    def load_env_representation(self, env_repr):
+        self.loaded_representation = env_repr
+        dim_x, dim_y = env_repr.get_obstacle_map().shape
+        self.set_dimension((dim_x, dim_y))
+
     def get_area_minimum(self):
         return self.dim[0] / 4
 
-    def generate_environment(self, extra_spacing=0, agent_radius=1):
-        x_dim, y_dim = self.dim
+    def get_interval_and_count(self, extra_spacing):
+        freq_x, freq_y = self.terrain_generator.get_frequency()
+        min_freq = min(freq_x, freq_y)
 
+        interval = self.dim[0] // min_freq
+
+        count = (2 * extra_spacing) // interval
+        if not (2 * extra_spacing) % interval == 0:
+            count += 1
+
+        return interval, count
+
+    def get_final_extra_space(self, extra_spacing):
+        interval, count = self.get_interval_and_count(extra_spacing)
+
+        return (count * interval) // 2
+
+    def get_final_frequency_terrain(self, extra_spacing):
+        interval, count = self.get_interval_and_count(extra_spacing)
+        freq_x, freq_y = self.terrain_generator.get_frequency()
+
+        interval_x = self.dim[0] // freq_x
+        multiplier_x = interval // interval_x
+
+        interval_y = self.dim[0] // freq_y
+        multiplier_y = interval // interval_y
+
+        n_freq = freq_x + count * multiplier_x, freq_y + count * multiplier_y
+
+        return freq_x + count * multiplier_x, freq_y + count * multiplier_y
+
+    def generate_environment(self, extra_spacing=0, agent_radius=1):
+        # loaded representation
+        if self.loaded_representation is not None:
+            return self.loaded_representation
+
+        # compute extra spacing so that the terrain frequency holds
+        x_dim, y_dim = self.dim
+        final_extra_spacing = self.get_final_extra_space(extra_spacing)
+
+        # create an obstacle map with enough extra spacing
         obstacle_map = None
         nb_tiles = 0
         start_positions = []
@@ -113,22 +158,29 @@ class GeneralEnvironmentGenerator:
         while nb_tiles < self.get_area_minimum():
             obstacle_map, nb_tiles, start_positions = self.obstacle_generator.generate_obstacle_map(agent_radius)
 
-        extra_dim_x, extra_dim_y = x_dim + 2 * extra_spacing, y_dim + 2 * extra_spacing
+        extra_dim_x, extra_dim_y = x_dim + 2 * final_extra_spacing, y_dim + 2 * final_extra_spacing
         extra_map = np.ones((extra_dim_x, extra_dim_y))
         extra_map[
-            extra_spacing : extra_dim_x - extra_spacing,
-            extra_spacing : extra_dim_y - extra_spacing
+            final_extra_spacing : extra_dim_x - final_extra_spacing,
+            final_extra_spacing : extra_dim_y - final_extra_spacing
         ] = obstacle_map
 
-        self.terrain_generator.set_dimension((x_dim + 2*extra_spacing, y_dim + 2*extra_spacing))
+        # create a terrain map with enough extra spacing
+        t_freq = self.terrain_generator.get_frequency()
+        self.terrain_generator.set_frequency(self.get_final_frequency_terrain(extra_spacing))
+
+        self.terrain_generator.set_dimension((x_dim + 2*final_extra_spacing, y_dim + 2*final_extra_spacing))
         terrain_map = self.terrain_generator.generate_terrain_map()
 
+        self.terrain_generator.set_frequency(t_freq)
+
+        # create environment representation
         env_representation = GeneralEnvironmentRepresentation(
             extra_map,
             nb_tiles,
             start_positions,
             terrain_map,
-            extra_spacing
+            final_extra_spacing
         )
 
         return env_representation

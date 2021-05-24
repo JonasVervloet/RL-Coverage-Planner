@@ -32,6 +32,9 @@ class ObstacleMapGenerator:
     def set_frequency(self, n_freq):
         self.noise_generator.res = n_freq
 
+    def get_frequency(self):
+        return self.noise_generator.res
+
     def set_fill_ratio(self, n_ratio):
         self.fill_ratio = n_ratio
 

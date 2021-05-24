@@ -15,6 +15,9 @@ class TerrainGenerator:
     def set_frequency(self, n_freq):
         self.noise_generator.res = n_freq
 
+    def get_frequency(self):
+        return self.noise_generator.res
+
     def generate_terrain_map(self):
         noise_map = self.noise_generator.generate_noise_map()
 

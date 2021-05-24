@@ -121,6 +121,39 @@ class GeneralEnvironmentRepresentation:
                offset:y_tot-offset
         ]
 
+    def save(self, path, name):
+        json_to_save = {}
+
+        obstacle_path = f"{path}{name}_obstacle_grid.npy"
+        np.save(obstacle_path, self.obstacle_map)
+        json_to_save['obstacle_grid'] = obstacle_path
+
+        terrain_path = f"{path}{name}_terrain_grid.npy"
+        np.save(terrain_path, self.terrain_map)
+        json_to_save['terrain_grid'] = terrain_path
+
+        json_to_save['start_positions'] = self.start_positions
+        json_to_save['nb_free_tiles'] = self.nb_free_tiles
+        json_to_save['extra_spacing'] = self.extra_spacing
+
+        with open(f'{path}{name}.txt', 'w') as output_file:
+            json.dump(json_to_save, output_file)
+
+    def load(self, path, name):
+        with open(f'{path}{name}.txt') as input_file:
+            input_data = json.load(input_file)
+
+            obstacle_path = input_data['obstacle_grid']
+            self.obstacle_map = np.load(obstacle_path)
+
+            terrain_path = input_data['terrain_grid']
+            self.terrain_map = np.load(terrain_path)
+
+            start_positions_array = np.array(input_data['start_positions'])
+            self.start_positions = [pos for pos in zip(start_positions_array[:, 0], start_positions_array[:, 1])]
+            self.nb_free_tiles = input_data['nb_free_tiles']
+            self.extra_spacing = input_data['extra_spacing']
+
 
 if __name__ == "__main__":
     save_path = "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/"
