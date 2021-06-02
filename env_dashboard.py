@@ -148,12 +148,14 @@ def update_terrain_map(n_clicks, size, freq_xt, freq_yt, freq_xo, freq_yo, fill_
 @app.callback(
     Output(component_id='terrain_save_btn', component_property='children'),
     Input(component_id='terrain_save_btn', component_property='n_clicks'),
-    State(component_id='terrain_save_name', component_property='value')
+    State(component_id='terrain_save_name', component_property='value'),
+    State(component_id='extra_spacing', component_property='value')
 )
-def save_height_map(n_clicks, name):
+def save_height_map(n_clicks, name, extra_spacing):
     if name is not None:
         print(name)
-        np.save(f"{SAVE_PATH}{name}.npy", MAP["terrain_map"])
+        env_representation = MAP["representation"]
+        np.save(f"{SAVE_PATH}{name}.npy", env_representation.get_terrain_map(extra_spacing))
     return "SAVE"
 
 """

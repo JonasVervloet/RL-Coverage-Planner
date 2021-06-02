@@ -491,7 +491,7 @@ class GeneralEnvironment:
                 local_terrain_map = self.get_local_map(
                     self.fov,
                     self.current_position,
-                    ""
+                    "terrain"
                 )
                 state = np.concatenate([state, [local_terrain_map]])
 

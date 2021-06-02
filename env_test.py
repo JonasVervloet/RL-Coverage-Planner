@@ -32,8 +32,8 @@ def state_to_surface(maps, info, nb_repeats):
         unscaled_img[info["current_position"]] = np.array((255, 255, 255))
 
     # test points to verify orientation
-    unscaled_img[5, 0, :] = np.array((255, 0, 0))
-    unscaled_img[0, 5, :] = np.array((0, 255, 0))
+    # unscaled_img[5, 0, :] = np.array((255, 0, 0))
+    # unscaled_img[0, 5, :] = np.array((0, 255, 0))
 
     scaled_img = np.repeat(unscaled_img, nb_repeats[0], axis=0)
     scaled_img = np.repeat(scaled_img, nb_repeats[1], axis=1)
@@ -89,7 +89,7 @@ def state_to_surface(maps, info, nb_repeats):
 # General Environment Generator
 env_dim = (16, 16)
 obstacle_freq = (2, 2)
-fill_ratio = 0.20
+fill_ratio = 0.22
 
 generator = GeneralEnvironmentGenerator(env_dim)
 generator.set_obstacle_frequency(obstacle_freq)
@@ -105,10 +105,10 @@ if load:
     generator.load_env_representation(env_repr)
 
 # General Environment
-agent_size = 1
+agent_size = 5
 fov = None
-turning = True
-terrain_info = False
+turning = False
+terrain_info = True
 
 env = GeneralEnvironment(generator)
 env.set_agent_size(agent_size)
