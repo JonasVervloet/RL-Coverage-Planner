@@ -31,7 +31,7 @@ def load_env_agent(folder):
 
 def main(argv):
     path = "D:/Documenten/Studie/2020-2021/Masterproef/Reinforcement-Learner-For-Coverage-Path-Planning/data/"
-    folder = "SERVER/env_8x/terrain/turn2/trial2/"
+    folder = "SERVER/env_8x/fov5/trial3/"
 
     try:
         options, args = getopt.getopt(argv, SHORT_OPTIONS, LONG_OPTIONS)
@@ -60,7 +60,7 @@ def main(argv):
 
     for episode_nb in range(START, nb_episodes + STEP, STEP):
         print(f"episode nb: {episode_nb}")
-        agent.load(path + folder, episode_nb)
+        agent.load(path + folder, episode_nb, 'cpu')
         agent.evaluate()
 
         count = 0

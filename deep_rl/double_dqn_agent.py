@@ -57,8 +57,11 @@ class DoubleDeepQAgent:
     def save(self, path, episode_nb):
         torch.save(self.policy_net.state_dict(), path + f"deep_q_agent_{episode_nb}.pt")
 
-    def load(self, path, episode_nb):
-        self.policy_net.load_state_dict(torch.load(path + f"deep_q_agent_{episode_nb}.pt"))
+    def load(self, path, episode_nb, device=None):
+        if device is not None:
+            self.policy_net.load_state_dict(torch.load(path + f"deep_q_agent_{episode_nb}.pt", map_location=device))
+        else:
+            self.policy_net.load_state_dict(torch.load(path + f"deep_q_agent_{episode_nb}.pt"))
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
     def evaluate(self):
