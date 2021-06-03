@@ -7,7 +7,8 @@ from load import default_arguments, load_arguments, initialize_objects
 SHORT_OPTIONS = ""
 LONG_OPTIONS = [
     "generalPath=",
-    "folder="
+    "folder=",
+    "dim="
 ]
 
 STEP = 250
@@ -15,16 +16,22 @@ START = STEP
 NB_RUNS = 300
 
 
-def load_env_agent(folder):
+def load_env_agent(folder, dim):
     arguments = default_arguments()
     arguments.update(load_arguments(folder, "arguments"))
 
     arguments["cuda"] = False
 
+    if dim is not None:
+        arguments["dim"] = dim
+
     if arguments["loadEnv"] is not None:
         print("not yet supported...")
 
+    print(arguments["dim"])
     env, agent = initialize_objects(arguments)
+    print(env.get_state_shape())
+    print(env.generator.get_dimension())
 
     return env, agent, arguments["nbEpisodes"]
 
@@ -38,12 +45,16 @@ def main(argv):
     except getopt.GetoptError:
         print("badly formatted command line arguments")
 
+    dim = None
     for option, argument in options:
         if option == "--generalPath":
             path = argument
 
         if option == "--folder":
             folder = argument
+
+        if option == "--dim":
+            dim = tuple(map(int, argument.split(",")))
 
     percentages = []
 
@@ -56,7 +67,7 @@ def main(argv):
     rel_terrain_efficiencies = []
     rel_terrain_efficiencies2 = []
 
-    env, agent, nb_episodes = load_env_agent(path + folder)
+    env, agent, nb_episodes = load_env_agent(path + folder, dim)
 
     for episode_nb in range(START, nb_episodes + STEP, STEP):
         print(f"episode nb: {episode_nb}")
@@ -113,16 +124,28 @@ def main(argv):
 
     print("saving....")
 
-    np.save(path + folder + "eval_cover_percentages", percentages)
+    if dim is None:
+        np.save(path + folder + "eval_cover_percentages", percentages)
 
-    np.save(path + folder + "eval_tile_efficiency", tile_efficiencies)
-    np.save(path + folder + "eval_tile_efficiency2", tile_efficiencies2)
+        np.save(path + folder + "eval_tile_efficiency", tile_efficiencies)
+        np.save(path + folder + "eval_tile_efficiency2", tile_efficiencies2)
 
-    np.save(path + folder + "eval_terrain_differences", terrain_efficiencies)
-    np.save(path + folder + "eval_terrain_differences2", terrain_efficiencies2)
+        np.save(path + folder + "eval_terrain_differences", terrain_efficiencies)
+        np.save(path + folder + "eval_terrain_differences2", terrain_efficiencies2)
 
-    np.save(path + folder + "eval_terrain_efficiency", rel_terrain_efficiencies)
-    np.save(path + folder + "eval_terrain_efficiency2", rel_terrain_efficiencies2)
+        np.save(path + folder + "eval_terrain_efficiency", rel_terrain_efficiencies)
+        np.save(path + folder + "eval_terrain_efficiency2", rel_terrain_efficiencies2)
+    else:
+        np.save(path + folder + f"eval_cover_percentages_x{dim[0]}", percentages)
+
+        np.save(path + folder + f"eval_tile_efficiency_x{dim[0]}", tile_efficiencies)
+        np.save(path + folder + f"eval_tile_efficiency2_x{dim[0]}", tile_efficiencies2)
+
+        np.save(path + folder + f"eval_terrain_differences_x{dim[0]}", terrain_efficiencies)
+        np.save(path + folder + f"eval_terrain_differences2_x{dim[0]}", terrain_efficiencies2)
+
+        np.save(path + folder + f"eval_terrain_efficiency_x{dim[0]}", rel_terrain_efficiencies)
+        np.save(path + folder + f"eval_terrain_efficiency2_x{dim[0]}", rel_terrain_efficiencies2)
 
     print("saving done!")
 

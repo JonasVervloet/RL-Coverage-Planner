@@ -58,9 +58,9 @@ def state_to_surface(maps, nb_repeats, info, positions):
     else:
         unscaled_img[info["current_position"]] = np.array(COLORS["white"])
 
-    # test points to verify orientation
-    unscaled_img[5, 0, :] = np.array((255, 0, 0))
-    unscaled_img[0, 5, :] = np.array((0, 255, 0))
+    # # test points to verify orientation
+    # unscaled_img[5, 0, :] = np.array((255, 0, 0))
+    # unscaled_img[0, 5, :] = np.array((0, 255, 0))
 
     scaled_img = np.repeat(unscaled_img, nb_repeats[0], axis=0)
     scaled_img = np.repeat(scaled_img, nb_repeats[1], axis=1)
@@ -154,6 +154,9 @@ def main(argv):
 
         if option == "--visDim":
             arguments["visDim"] = tuple(map(int, argument.split(",")))
+
+        if option == "--stateSize":
+            arguments["stateSize"] = int(argument)
 
         if option == "--episodeNb":
             arguments["episodeNb"] = int(argument)
