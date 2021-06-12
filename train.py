@@ -10,6 +10,7 @@ from deep_rl.deep_q_agent import DeepQAgent
 from deep_rl.double_dqn_agent import DoubleDeepQAgent
 
 from load import load_arguments, default_arguments, initialize_objects
+from load import GENERATORS, AGENTS, OPTIMIZERS
 
 SHORT_OPTIONS = ""
 LONG_OPTIONS = [
@@ -51,20 +52,6 @@ LONG_OPTIONS = [
     "saveEvery=",
     "savePath="
 ]
-
-GENERATORS = {
-    "simpleQ": SimpleDeepQNetworkGenerator,
-    "simpleQ2": SimpleDeepQNetworkGenerator2
-}
-
-AGENTS = {
-    "deepQ": DeepQAgent,
-    "doubleDQ": DoubleDeepQAgent
-}
-
-OPTIMIZERS = {
-    "rmsProp": optim.RMSprop
-}
 
 
 def main(argv):

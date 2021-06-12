@@ -11,6 +11,7 @@ from environments.env_representation import GeneralEnvironmentRepresentation
 
 from networks.simple_q_network import SimpleDeepQNetworkGenerator
 from networks.simple_q_network import SimpleDeepQNetworkGenerator2
+from networks.network3 import DeepQNetworkGenerator3
 
 from deep_rl.deep_q_agent import DeepQAgent
 from deep_rl.double_dqn_agent import DoubleDeepQAgent
@@ -59,7 +60,8 @@ DEFAULT_ARGUMENTS = {
 
 GENERATORS = {
     "simpleQ": SimpleDeepQNetworkGenerator,
-    "simpleQ2": SimpleDeepQNetworkGenerator2
+    "simpleQ2": SimpleDeepQNetworkGenerator2,
+    "network3": DeepQNetworkGenerator3
 }
 
 AGENTS = {
